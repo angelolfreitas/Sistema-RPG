@@ -3,8 +3,12 @@ package com.ieji.rpg.service;
 import com.ieji.rpg.domain.dto.personagem.PersonagemRequest;
 import com.ieji.rpg.domain.dto.personagem.PersonagemResponse;
 import com.ieji.rpg.domain.entity.Personagem;
+import com.ieji.rpg.domain.entity.Usuario;
+import com.ieji.rpg.domain.entity.role.Role;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
+import com.ieji.rpg.infra.repository.UserRepository;
 import com.ieji.rpg.infra.security.TokenService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,23 +18,22 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
 
 
     private final PersonagemRepository repository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private TokenService tokenService;
-
-    public PersonagemService(PersonagemRepository repository) {
+    public PersonagemService(PersonagemRepository repository, UserRepository userRepository) {
         super(repository);
         this.repository = repository;
+        this.userRepository = userRepository;
     }
 
     @Override
     PersonagemResponse construct(PersonagemRequest object) {
+        Usuario usuario = userRepository.findById(object.usuarioId())
+                .orElseThrow(() -> new EntityNotFoundException("Usuário associado não encontrado"));
         Personagem personagem = Personagem.builder()
-                .nomeJogador(object.nomeJogador())
                 .aparencia(object.aparencia())
+                .usuario(usuario)
                 .personalidade(object.personalidade())
                 .historico(object.historico())
                 .objetivo(object.objetivo())
@@ -47,17 +50,17 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
                 .peAtual(object.peAtual())
                 .peMaximo(object.peMaximo())
                 .defesa(object.defesa())
-                .password(object.password())
+                .nomeJogador(object.nome())
                 .build();
-        String token = this.tokenService.generateToken(personagem);
+
         repository.save(personagem);
 
-        return PersonagemResponse.constructByEntity(personagem, token);
+        return PersonagemResponse.constructByEntity(personagem);
     }
 
     @Override
     protected void updateData(Personagem entity, PersonagemRequest object) {
-        entity.setNomeJogador(object.nomeJogador());
+
         entity.setAparencia(object.aparencia());
         entity.setPersonalidade(object.personalidade());
         entity.setHistorico(object.historico());
@@ -75,6 +78,12 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
         entity.setPeAtual(object.peAtual());
         entity.setPeMaximo(object.peMaximo());
         entity.setDefesa(object.defesa());
+        entity.setNomeJogador(object.nome());
+        if (!entity.getUsuario().getId().equals(object.usuarioId())) {
+            Usuario novoUsuario = userRepository.findById(object.usuarioId())
+                    .orElseThrow(() -> new EntityNotFoundException("Novo usuário associado não encontrado"));
+            entity.setUsuario(novoUsuario);
+        }
     }
 
     @Override

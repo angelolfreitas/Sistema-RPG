@@ -5,7 +5,7 @@ import com.ieji.rpg.domain.entity.Personagem;
 
 public record PersonagemResponse(
         Integer id,
-        String nomeJogador,
+        Integer usuarioId,
         String aparencia,
         String personalidade,
         String historico,
@@ -23,16 +23,13 @@ public record PersonagemResponse(
         Integer peAtual,
         Integer peMaximo,
         Integer defesa,
-        String token
+        String nome
 ) implements BaseDTO<Integer> {
     @Override public Integer getId() { return id; }
     public static PersonagemResponse constructByEntity(Personagem personagem) {
-        return constructByEntity(personagem, null);
-    }
-    public static PersonagemResponse constructByEntity(Personagem personagem, String token) {
         return  new PersonagemResponse(
                 personagem.getIdPersonagem(),
-                personagem.getNomeJogador(),
+                personagem.getUsuario().getId(),
                 personagem.getAparencia(),
                 personagem.getPersonalidade(),
                 personagem.getHistorico(),
@@ -50,7 +47,7 @@ public record PersonagemResponse(
                 personagem.getPeAtual(),
                 personagem.getPeMaximo(),
                 personagem.getDefesa(),
-                token
+                personagem.getNomeJogador()
         );
     }
 }

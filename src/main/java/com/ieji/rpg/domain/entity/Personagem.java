@@ -18,15 +18,17 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Personagem   implements UserDetails {
+public class Personagem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_personagem")
     private Integer idPersonagem;
 
-    @Column(name = "senha")
-    private String password;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
     @Column(name = "nome_jogador", length = 100)
     private String nomeJogador;
@@ -82,13 +84,9 @@ public class Personagem   implements UserDetails {
     @Column(nullable = false)
     private Integer defesa;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return role.getAuthorities();
-    }
+
+
     @ManyToMany
     @JoinTable(
             name = "personagem_aetherys",
@@ -98,13 +96,6 @@ public class Personagem   implements UserDetails {
     private Set<Aetherys> aetherys;
 
 
-    @Override
-    public @Nullable String getPassword() {
-        return "";
-    }
 
-    @Override
-    public String getUsername() {
-        return "";
-    }
+
 }

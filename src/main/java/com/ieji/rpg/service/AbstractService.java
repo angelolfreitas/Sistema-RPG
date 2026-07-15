@@ -35,10 +35,11 @@ public abstract class AbstractService <T, ID, DTO extends BaseDTO<ID>, DTI>{
         return convertToResponse(entity);
     }
     public Optional<DTI> create(DTO dto){
-        Optional<T> findObject = repository.findById(dto.getId());
-
-        if(findObject.isPresent()){
-            return Optional.empty();
+        if (dto.getId() != null) {
+            Optional<T> findObject = repository.findById(dto.getId());
+            if(findObject.isPresent()){
+                return Optional.empty();
+            }
         }
 
         return Optional.of(construct(dto));

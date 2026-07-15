@@ -23,6 +23,7 @@ public class Item {
     @Column(columnDefinition = "TEXT")
     private String descricao;
 
-    @Column(columnDefinition = "NUMBER")
+
+    @Column(nullable = false)
     private Integer quantidade;
 }

@@ -2,7 +2,9 @@ package com.ieji.rpg.infra.security;
 
 
 import com.ieji.rpg.domain.entity.Personagem;
+import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
+import com.ieji.rpg.infra.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,17 +25,19 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Autowired
     TokenService tokenService;
     @Autowired
-    PersonagemRepository userRepository;
+    UserRepository userRepository;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
         var login = tokenService.validateToken(token);
 
-        if(login != null ){
-            Personagem user = userRepository.findByNome(login).orElseThrow(()->new RuntimeException("User not found."));
-            var authorities = user.getAuthorities();
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (login != null) {
+            userRepository.findByEmail(login).ifPresent(user -> {
+                var authorities = user.getAuthorities();
+                var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            });
+
         }
         filterChain.doFilter(request, response);
     }

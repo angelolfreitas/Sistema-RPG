@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
-
 public abstract class AbstractController<T, ID, DTO extends BaseDTO<ID>, DTI> {
 
     protected final AbstractService<T, ID, DTO, DTI> service;

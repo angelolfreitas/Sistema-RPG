@@ -4,7 +4,7 @@ import com.ieji.rpg.domain.dto.BaseDTO;
 
 public record PersonagemRequest(
         Integer id,
-        String nomeJogador,
+        Integer usuarioId,
         String aparencia,
         String personalidade,
         String historico,
@@ -22,7 +22,7 @@ public record PersonagemRequest(
         Integer peAtual,
         Integer peMaximo,
         Integer defesa,
-        String password
+        String nome
 ) implements BaseDTO<Integer> {
     @Override public Integer getId() { return id; }
 }
