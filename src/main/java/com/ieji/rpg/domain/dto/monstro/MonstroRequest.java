@@ -11,7 +11,8 @@ public record MonstroRequest(
         String ataquesEspeciais,
         String comportamento,
         String fraquezas,
-        String imagemUrl
+        String imagemUrl,
+        Boolean conhecido
 ) implements BaseDTO<Integer> {
     @Override public Integer getId() { return id; }
 }

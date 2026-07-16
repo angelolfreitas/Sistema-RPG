@@ -114,7 +114,9 @@ public class ChatWebSocketController {
 
     @MessageMapping("/caso/{casoId}/monstro/{monstroId}/batalha")
     public void iniciarBatalha(@DestinationVariable Integer casoId, @DestinationVariable Integer monstroId) {
-        registrarConhecimento(casoId, monstroId);
+        List<Integer> usuariosOnlineIds = presencaPorCaso.getOrDefault(casoId, Map.of())
+                .values().stream().map(UsuarioPresente::id).toList();
+        monstroService.registrarConhecimentoParaUsuarios(monstroId, usuariosOnlineIds);
         MonstroResponse monstro = monstroService.marcarEmBatalha(monstroId, true);
         messagingTemplate.convertAndSend("/topic/caso/" + casoId + "/batalha", monstro);
     }

@@ -3,9 +3,12 @@ package com.ieji.rpg.service;
 import com.ieji.rpg.domain.dto.monstro.MonstroRequest;
 import com.ieji.rpg.domain.dto.monstro.MonstroResponse;
 import com.ieji.rpg.domain.entity.Monstro;
+import com.ieji.rpg.domain.entity.MonstroConhecido;
+import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.infra.repository.MonstroConhecidoRepository;
 import com.ieji.rpg.infra.repository.MonstroRepository;
+import com.ieji.rpg.infra.repository.PersonagemRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,17 +27,45 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     }
     @Autowired
     private MonstroConhecidoRepository monstroConhecidoRepository;
+    @Autowired
+    private PersonagemRepository personagemRepository;
+    @Transactional
+    public void registrarConhecimentoParaUsuarios(Integer monstroId, List<Integer> usuariosIds) {
+        Monstro monstro = repository.findById(monstroId).orElse(null);
+        if (monstro == null || usuariosIds.isEmpty()) return;
+
+        for (Integer usuarioId : usuariosIds) {
+            List<Personagem> personagens = personagemRepository.findByUsuarioId(usuarioId);
+
+            for (Personagem p : personagens) {
+                boolean jaConhece = monstroConhecidoRepository
+                        .existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(monstroId, p.getIdPersonagem());
+
+                if (!jaConhece) {
+                    monstroConhecidoRepository.save(MonstroConhecido.builder()
+                            .monstro(monstro)
+                            .personagem(p)
+                            .conhecidoEm(java.time.Instant.now())
+                            .build());
+                }
+            }
+        }
+    }
+
 
     public List<MonstroResponse> listarParaUsuario(Usuario usuario) {
         boolean ehMestre = usuario.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("manager::write") || a.getAuthority().equals("admin::write"));
+                .anyMatch(a -> a.getAuthority().equals("admin::write") || a.getAuthority().equals("admin::write"));
 
         List<Monstro> todos = repository.findAll();
 
         return todos.stream().map(m -> {
             MonstroResponse monstroResponse = MonstroResponse.constructByEntity(m);
-            boolean conhecido = ehMestre || monstroConhecidoRepository
-                    .existsByMonstro_IdMonstroAndPersonagem_Usuario_Id(m.getIdMonstro(), usuario.getId());
+
+            boolean conhecido = ehMestre ||
+                    Boolean.TRUE.equals(m.getEmBatalha()) ||
+                    monstroConhecidoRepository.existsByMonstro_IdMonstroAndPersonagem_Usuario_Id(m.getIdMonstro(), usuario.getId());
+
             if(ehMestre){
                 return monstroResponse;
             }else if(conhecido) {
@@ -47,10 +78,8 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     }
     @Transactional
     public MonstroResponse alterarVida(Integer id, Integer novoPv) {
-        // Usamos o patchEntity existente para atualizar apenas o campo 'pv'
         this.patchEntity(id, Map.of("pv", novoPv));
 
-        // Retorna o objeto atualizado
         return getById(id);
     }
 

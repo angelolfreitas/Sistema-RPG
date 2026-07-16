@@ -44,4 +44,8 @@ public class Monstro {
     @Column(name = "em_batalha", nullable = false)
     @Builder.Default
     private Boolean emBatalha = false;
+
+    @Column(name = "conhecido", nullable = false)
+    @Builder.Default
+    private Boolean conhecido = false;
 }

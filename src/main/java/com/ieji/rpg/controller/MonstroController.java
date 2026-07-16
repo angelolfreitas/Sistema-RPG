@@ -25,7 +25,7 @@ public class MonstroController extends AbstractController<Monstro, Integer, Mons
 
     @Override
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
+    @PreAuthorize("hasAuthority('admin::write')")
     public ResponseEntity<MonstroResponse> patch(
             @PathVariable Integer id,
             @RequestBody Map<String, Object> fields
@@ -39,5 +39,10 @@ public class MonstroController extends AbstractController<Monstro, Integer, Mons
     public ResponseEntity<List<MonstroResponse>> findAll() {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(((MonstroService) service).listarParaUsuario(usuario));
+    }
+    @PreAuthorize("hasAuthority('admin::read')")
+    @Override
+    public ResponseEntity<MonstroResponse> getById(Integer integer) {
+        return super.getById(integer);
     }
 }

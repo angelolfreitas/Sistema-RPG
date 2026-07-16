@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface MonstroConhecidoRepository extends JpaRepository<MonstroConhecido, Long> {
     boolean existsByMonstro_IdMonstroAndPersonagem_Usuario_Id(Integer idMonstro, Integer usuarioId);
+    boolean existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(Integer idMonstro, Integer idPersonagem);
     List<MonstroConhecido> findByPersonagem_Usuario_Id(Integer usuarioId);
 }

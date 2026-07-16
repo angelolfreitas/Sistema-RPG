@@ -33,8 +33,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
     @Autowired
     private TokenService tokenService;
 
-    private final PersonagemRepository personagemRepository; // injeta no construtor, se ainda não tiver
-
+    private final PersonagemRepository personagemRepository;
 
     public UserService(UserRepository repository, PersonagemRepository personagemRepository) {
         super(repository);
@@ -65,7 +64,9 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
             emailService.enviar(
                     usuario.getEmail(),
                     "Redefinição de senha — Instituto Eleonora",
-                    "Clique no link para redefinir sua senha (válido por 1 hora): " + link
+                    "Recebemos um pedido de redefinição de senha por parte de você, agente " +usuario.getUsername()+".\n"
+                            +"É inadmissível que você esqueça suas credenciais, pois coloca os estudantes e o instituto em risco. Por favor, tenha um mínimo de cuidado da próxima vez.\n"
+                            + link
             );
         });
     }
@@ -152,19 +153,16 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
     @Override
     @Transactional
     public void delete(Integer id) {
-        // 1. Busca o usuário com segurança. Se não existir, sai silenciosamente (evita o EntityNotFoundException)
         Usuario usuario = repository.findById(id).orElse(null);
         if (usuario == null) {
             return;
         }
 
-        // 2. Limpa os personagens para não dar erro de Chave Estrangeira (Foreign Key)
         List<Personagem> personagens = personagemRepository.findByUsuarioId(id);
         if (personagens != null && !personagens.isEmpty()) {
             personagemRepository.deleteAll(personagens);
         }
 
-        // 3. Apaga o usuário direto pelo repositório, ignorando o AbstractService problemático
         repository.delete(usuario);
     }
 }
