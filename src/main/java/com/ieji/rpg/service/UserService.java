@@ -61,7 +61,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
                     .build());
 
             String link = frontendUrl + "/resetar-senha?token=" + token;
-            emailService.enviar(
+            emailService.enviarAsync(
                     usuario.getEmail(),
                     "Redefinição de senha — Instituto Eleonora",
                     "Recebemos um pedido de redefinição de senha por parte de você, agente " +usuario.getUsername()+".\n"
