@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/pericia")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAuthority('user::write')")
 public class PericiaController extends AbstractController<Pericia, Integer, PericiaRequest, PericiaResponse> {
     protected PericiaController(PericiaService service) {
         super(service);

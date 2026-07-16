@@ -84,6 +84,9 @@ public class Personagem {
     @Column(nullable = false)
     private Integer defesa;
 
+    @Column(name = "imagem_url")
+    private String imagemUrl;
+
 
 
 

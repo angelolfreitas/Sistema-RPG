@@ -1,5 +1,6 @@
 package com.ieji.rpg.domain.entity;
 
+import com.ieji.rpg.domain.Exception.EstoqueInsuficienteException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,4 +27,16 @@ public class Item {
 
     @Column(nullable = false)
     private Integer quantidade;
+
+    public void removerEstoque(int qtd) {
+        if (qtd <= 0) {
+            throw new IllegalArgumentException("Quantidade deve ser maior que zero.");
+        }
+        if (this.quantidade < qtd) {
+            throw new EstoqueInsuficienteException(
+                    "Estoque insuficiente. Disponível: " + this.quantidade
+            );
+        }
+        this.quantidade -= qtd;
+    }
 }

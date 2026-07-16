@@ -3,19 +3,43 @@ package com.ieji.rpg.controller;
 import com.ieji.rpg.domain.dto.caso.CasoRequest;
 import com.ieji.rpg.domain.dto.caso.CasoResponse;
 import com.ieji.rpg.domain.entity.CasoInvestigacao;
-import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
-import com.ieji.rpg.service.AbstractService;
 import com.ieji.rpg.service.CasoInvestigacaoService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/caso")
-@PreAuthorize("hasRole('USER')")
-public class CasoController  extends AbstractController<CasoInvestigacao, Integer, CasoRequest, CasoResponse>
-{
-    public CasoController(CasoInvestigacaoService service) {
+@RequestMapping("/casos")
+public class CasoController extends AbstractController<CasoInvestigacao, Integer, CasoRequest, CasoResponse> {
+
+    protected CasoController(CasoInvestigacaoService service) {
         super(service);
+    }
+
+    // Sobrescrevendo o create padrão para restringir permissões de quem pode criar o Caso
+    @Override
+    @PostMapping
+    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
+    public ResponseEntity<CasoResponse> create(@RequestBody CasoRequest dto) {
+        return super.create(dto);
+    }
+
+    // Endpoints específicos para gerenciamento da mesa/sessão
+    @PostMapping("/{id}/entrar")
+    @PreAuthorize("hasAuthority('user::write') or hasAuthority('manager::write')")
+    public ResponseEntity<Void> entrarNaSessao(@PathVariable Integer id, Authentication auth) {
+        // Faz o cast seguro pois sabemos que o service injetado é o CasoInvestigacaoService
+        ((CasoInvestigacaoService) service).adicionarJogador(id, auth.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/jogadores")
+    @PreAuthorize("hasAuthority('user::read') or hasAuthority('manager::read')")
+    public ResponseEntity<List<String>> listarJogadores(@PathVariable Integer id) {
+        List<String> jogadores = ((CasoInvestigacaoService) service).listarJogadores(id);
+        return ResponseEntity.ok(jogadores);
     }
 }

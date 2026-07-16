@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/personagem-p")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAuthority('user::write')")
 public class PersonagemPericiaController extends AbstractController<PersonagemPericia, PersonagemPericiaId, PersonagemPericiaRequest, PersonagemPericiaResponse> {
     protected PersonagemPericiaController(PersonagemPericiaService service) {
         super(service);

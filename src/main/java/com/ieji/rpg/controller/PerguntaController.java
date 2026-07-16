@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/pergunta")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAuthority('user::write')")
 public class PerguntaController extends AbstractController<Pergunta, Integer, PerguntaRequest, PerguntaResponse> {
     protected PerguntaController(PerguntaService service) {
         super(service);

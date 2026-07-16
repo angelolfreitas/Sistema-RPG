@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/pista")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAuthority('user::write')")
 public class PistaController extends AbstractController<Pista, Integer, PistaRequest, PistaResponse> {
     protected PistaController(PistaService service) {
         super(service);

@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class PersonagemService extends AbstractService<Personagem, Integer, PersonagemRequest, PersonagemResponse> {
 
@@ -89,5 +91,10 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
     @Override
     protected PersonagemResponse convertToResponse(Personagem entity) {
         return PersonagemResponse.constructByEntity(entity);
+    }
+    public List<PersonagemResponse> findByUsuarioLogado(Integer usuarioId) {
+        return repository.findByUsuarioId(usuarioId).stream()
+                .map(PersonagemResponse::constructByEntity)
+                .toList();
     }
 }

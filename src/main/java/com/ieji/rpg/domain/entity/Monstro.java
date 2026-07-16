@@ -20,6 +20,9 @@ public class Monstro {
     @Column(nullable = false, length = 100)
     private String nome;
 
+    @Column(name = "pv_maximo", nullable = false)
+    private Integer pvMaximo;
+
     @Column(nullable = false)
     private Integer pv;
 
@@ -34,4 +37,11 @@ public class Monstro {
 
     @Column(columnDefinition = "TEXT")
     private String fraquezas;
+
+    @Column(name = "imagem_url")
+    private String imagemUrl;
+
+    @Column(name = "em_batalha", nullable = false)
+    @Builder.Default
+    private Boolean emBatalha = false;
 }

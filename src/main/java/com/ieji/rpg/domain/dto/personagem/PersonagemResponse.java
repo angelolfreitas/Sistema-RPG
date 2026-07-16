@@ -23,7 +23,8 @@ public record PersonagemResponse(
         Integer peAtual,
         Integer peMaximo,
         Integer defesa,
-        String nome
+        String nome,
+        String imagemUrl
 ) implements BaseDTO<Integer> {
     @Override public Integer getId() { return id; }
     public static PersonagemResponse constructByEntity(Personagem personagem) {
@@ -47,7 +48,8 @@ public record PersonagemResponse(
                 personagem.getPeAtual(),
                 personagem.getPeMaximo(),
                 personagem.getDefesa(),
-                personagem.getNomeJogador()
+                personagem.getNomeJogador(),
+                personagem.getImagemUrl()
         );
     }
 }
