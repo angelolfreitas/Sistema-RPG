@@ -165,4 +165,9 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
         repository.delete(usuario);
     }
+
+    public boolean getByEmail(String adminEmail) {
+        Optional<Usuario> user = ((UserRepository)repository).findByEmail(adminEmail);
+        return user.isPresent();
+    }
 }

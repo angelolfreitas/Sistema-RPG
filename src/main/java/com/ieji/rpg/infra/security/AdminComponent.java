@@ -19,15 +19,18 @@ public class AdminComponent {
     @Bean
     public CommandLineRunner initAdmin(UserService authentication) {
         return args -> {
+            boolean adminJaExiste = authentication.getByEmail(adminEmail);
+
+            if (adminJaExiste) return;
+
             try {
                 authentication.constructAdmin(
                         new LoginRequest("mestre", adminEmail, adminPassword),
-                        Role.ADMIN
-                );
+                        Role.ADMIN);
             } catch (Exception e) {
-                // Admin já existe de uma subida anterior — não é erro, é esperado
-                System.out.println("Admin já existente, seed ignorado: " + e.getMessage());
             }
+
+
         };
     }
 }
