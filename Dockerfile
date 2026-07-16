@@ -1,12 +1,10 @@
-FROM maven:3.9.6-eclipse-temurin-21 AS build
-LABEL authors="ANGELOLFREITAS"
+FROM gradle:8-jdk21 AS build
 WORKDIR /app
-COPY pom.xml .
+COPY build.gradle settings.gradle ./
 COPY src ./src
-RUN mvn clean package -DskipTests
-
+RUN gradle build -x test --no-daemon
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/build/libs/*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
