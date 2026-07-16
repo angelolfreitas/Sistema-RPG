@@ -2,6 +2,7 @@ package com.ieji.rpg.infra.websocket;
 
 import com.ieji.rpg.infra.security.TokenService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -35,6 +36,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         config.enableSimpleBroker("/topic"); // Onde o front vai escutar
         config.setApplicationDestinationPrefixes("/app"); // Onde o front vai enviar
     }
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
@@ -77,7 +81,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:5173") // <-- Coloque a URL exata do React aqui
+                .setAllowedOrigins(frontendUrl) // <-- Coloque a URL exata do React aqui
                 .withSockJS();
     }
 }
