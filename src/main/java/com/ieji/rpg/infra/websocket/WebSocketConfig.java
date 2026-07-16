@@ -81,7 +81,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins(frontendUrl) // <-- Coloque a URL exata do React aqui
+                .setAllowedOriginPatterns(
+                        frontendUrl,
+                        "https://*-ieji.vercel.app"
+                )
                 .withSockJS();
     }
 }
