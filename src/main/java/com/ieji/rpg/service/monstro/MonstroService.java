@@ -2,11 +2,13 @@ package com.ieji.rpg.service.monstro;
 
 import com.ieji.rpg.domain.dto.monstro.MonstroRequest;
 import com.ieji.rpg.domain.dto.monstro.MonstroResponse;
+import com.ieji.rpg.domain.entity.CasoInvestigacao;
 import com.ieji.rpg.domain.entity.monstro.MaterialMonstro;
 import com.ieji.rpg.domain.entity.monstro.Monstro;
 import com.ieji.rpg.domain.entity.MonstroConhecido;
 import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
+import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
 import com.ieji.rpg.infra.repository.MonstroConhecidoRepository;
 import com.ieji.rpg.infra.repository.MonstroRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
@@ -34,6 +36,8 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     private PersonagemRepository personagemRepository;
     @Autowired
     private MonstroCacheService monstroCacheService;
+    @Autowired
+    private CasoInvestigacaoRepository casoRepository;
     @Transactional
     public void registrarConhecimentoParaUsuarios(Integer monstroId, List<Integer> usuariosIds) {
         Monstro monstro = repository.findById(monstroId).orElse(null);
@@ -142,10 +146,18 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
         return MonstroResponse.constructByEntity(monstro);
     }
 
-    @CacheEvict(value = "monstros", allEntries = true)
     @Override
+    @Transactional
     public void delete(Integer id) {
+        List<CasoInvestigacao> casosEmBatalha = casoRepository.findByid_monstro_atual(id);
+        for (CasoInvestigacao caso : casosEmBatalha) {
+            caso.setMonstroAtual(null);
+            casoRepository.save(caso);
+        }
+
+
         monstroConhecidoRepository.deleteByMonstro_IdMonstro(id);
+
         super.delete(id);
     }
     @CacheEvict(value = "monstros", allEntries = true)
