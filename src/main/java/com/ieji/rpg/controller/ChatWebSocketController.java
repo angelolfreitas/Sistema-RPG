@@ -92,6 +92,7 @@ public class ChatWebSocketController {
 
     @MessageMapping("/caso/{casoId}/chat")
     @SendTo("/topic/caso/{casoId}/chat")
+
     public MensagemChatResponse receberMensagem(@DestinationVariable Integer casoId,
                                                 MensagemChatRequest request) {
         return chatService.salvarMensagem(casoId, request.authorId(), request.personagemId(), request.conteudo());

@@ -28,14 +28,14 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
     }
 
     @PostMapping("/{id}/entrar")
-    @PreAuthorize("hasAuthority('user::write') or hasAuthority('manager::write')")
+    @PreAuthorize("hasAuthority('user::write')")
     public ResponseEntity<Void> entrarNaSessao(@PathVariable Integer id, Authentication auth) {
         ((CasoInvestigacaoService) service).adicionarJogador(id, auth.getName());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}/jogadores")
-    @PreAuthorize("hasAuthority('user::read') or hasAuthority('manager::read')")
+    @PreAuthorize("hasAuthority('user::read')")
     public ResponseEntity<List<String>> listarJogadores(@PathVariable Integer id) {
         List<String> jogadores = ((CasoInvestigacaoService) service).listarJogadores(id);
         return ResponseEntity.ok(jogadores);
