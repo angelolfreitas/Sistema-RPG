@@ -81,11 +81,6 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
         entity.setPeMaximo(object.peMaximo());
         entity.setDefesa(object.defesa());
         entity.setNomeJogador(object.nome());
-        if (!entity.getUsuario().getId().equals(object.usuarioId())) {
-            Usuario novoUsuario = userRepository.findById(object.usuarioId())
-                    .orElseThrow(() -> new EntityNotFoundException("Novo usuário associado não encontrado"));
-            entity.setUsuario(novoUsuario);
-        }
     }
 
     @Override

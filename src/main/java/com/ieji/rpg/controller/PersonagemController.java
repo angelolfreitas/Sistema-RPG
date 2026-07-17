@@ -23,6 +23,22 @@ public class PersonagemController extends AbstractController<Personagem, Integer
         super(service);
     }
 
+    @Override
+    @PostMapping
+    public ResponseEntity<PersonagemResponse> create(@RequestBody PersonagemRequest dto) {
+        Usuario usuario = usuarioLogado();
+        PersonagemRequest seguro = new PersonagemRequest(
+                dto.id(), usuario.getId(), dto.aparencia(), dto.personalidade(),
+                dto.historico(), dto.objetivo(), dto.agilidade(), dto.forca(),
+                dto.intelecto(), dto.presenca(), dto.vigor(), dto.nex(),
+                dto.pvAtual(), dto.pvMaximo(), dto.sanAtual(), dto.sanMaxima(),
+                dto.peAtual(), dto.peMaximo(), dto.defesa(), dto.nome()
+        );
+        return service.create(seguro)
+                .map(response -> ResponseEntity.status(201).body(response))
+                .orElseGet(() -> ResponseEntity.status(409).build());
+    }
+
     private Usuario usuarioLogado() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (Usuario) authentication.getPrincipal();
