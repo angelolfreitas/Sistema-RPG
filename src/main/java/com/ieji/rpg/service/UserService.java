@@ -93,7 +93,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
         if (passwordEncoder.matches(data.password(), user.getPassword())) {
             String token = this.tokenService.generateToken(user);
-            return new LoginResponse(user.getId(), user.getUsername(), token);
+            return new LoginResponse(user.getId(), user.getUsername(), token, user.getRole());
         }
 
         throw new RuntimeException("Senha inválida.");
@@ -111,7 +111,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
         repository.save(usuario);
         String token = this.tokenService.generateToken(usuario);
-        return new LoginResponse(usuario.getId(), usuario.getUsername(), token);
+        return new LoginResponse(usuario.getId(), usuario.getUsername(), token, usuario.getRole());
     }
 
     public LoginResponse constructAdmin(LoginRequest object, Role role) {
@@ -129,7 +129,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
         repository.save(usuario);
         String token = this.tokenService.generateToken(usuario);
-        return new LoginResponse(usuario.getId(), usuario.getUsername(), token);
+        return new LoginResponse(usuario.getId(), usuario.getUsername(), token, usuario.getRole());
     }
 
     @Override
@@ -142,7 +142,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
     @Override
     protected LoginResponse convertToResponse(Usuario entity) {
         String token = this.tokenService.generateToken(entity);
-        return new LoginResponse(entity.getId(), entity.getUsername(), token);
+        return new LoginResponse(entity.getId(), entity.getUsername(), token, entity.getRole());
     }
 
     @Transactional

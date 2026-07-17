@@ -52,9 +52,6 @@ public class MonstroController extends AbstractController<Monstro, Integer, Mons
     @PreAuthorize("hasAuthority('manager::write')")
     @Override
     public ResponseEntity<MonstroResponse> create(@RequestBody MonstroRequest dto) {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         return service.create(dto)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.CONFLICT).build());
