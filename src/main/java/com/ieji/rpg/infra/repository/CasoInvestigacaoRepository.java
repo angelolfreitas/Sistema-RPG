@@ -13,4 +13,5 @@ import java.util.Optional;
 public interface CasoInvestigacaoRepository extends JpaRepository<CasoInvestigacao, Integer> {
     Optional<CasoInvestigacao> findByNomeCaso(String nome);
     List<CasoInvestigacao> findByMonstroAtual_IdMonstro(Integer idMonstro);
+    List<CasoInvestigacao> findByMestre_Id(Integer idMestre);
 }

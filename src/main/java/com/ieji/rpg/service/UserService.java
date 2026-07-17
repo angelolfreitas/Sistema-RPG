@@ -2,10 +2,12 @@ package com.ieji.rpg.service;
 
 import com.ieji.rpg.domain.dto.user.LoginRequest;
 import com.ieji.rpg.domain.dto.user.LoginResponse;
+import com.ieji.rpg.domain.entity.CasoInvestigacao;
 import com.ieji.rpg.domain.entity.PasswordResetToken;
 import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.domain.entity.role.Role;
+import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
 import com.ieji.rpg.infra.repository.PasswordResetTokenRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
 import com.ieji.rpg.infra.repository.UserRepository;
@@ -35,9 +37,14 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
     private final PersonagemRepository personagemRepository;
 
-    public UserService(UserRepository repository, PersonagemRepository personagemRepository) {
+    private final CasoInvestigacaoRepository casoInvestigacaoRepository;
+
+    public UserService(UserRepository repository,
+                       PersonagemRepository personagemRepository,
+                       CasoInvestigacaoRepository casoInvestigacaoRepository) {
         super(repository);
         this.personagemRepository = personagemRepository;
+        this.casoInvestigacaoRepository = casoInvestigacaoRepository;
     }
 
     @Autowired
@@ -159,6 +166,20 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
     public void delete(Integer id) {
         Usuario usuario = repository.findById(id).orElse(null);
         if (usuario == null) return;
+
+        tokenRepository.deleteByUsuario_Id(id);
+
+
+        List<CasoInvestigacao> todosCasos = casoInvestigacaoRepository.findAll();
+        for (CasoInvestigacao caso : todosCasos) {
+            if (caso.getJogadores().contains(usuario)) {
+                caso.getJogadores().remove(usuario);
+                casoInvestigacaoRepository.save(caso);
+            }
+        }
+
+        List<CasoInvestigacao> casosComoMestre = casoInvestigacaoRepository.findByMestre_Id(id);
+        casoInvestigacaoRepository.deleteAll(casosComoMestre);
 
         List<Personagem> personagens = personagemRepository.findByUsuarioId(id);
         for (Personagem p : personagens) {
