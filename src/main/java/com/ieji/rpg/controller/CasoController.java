@@ -45,4 +45,17 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
     public ResponseEntity<List<CasoUsuarioResponse>> listarUsuariosCompletos(@PathVariable Integer id) {
         return ResponseEntity.ok(((CasoInvestigacaoService) service).listarUsuariosCompletos(id));
     }
+
+    @Override
+    @PutMapping
+    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
+    public ResponseEntity<CasoResponse> update(@RequestBody CasoRequest dto) {
+        return super.update(dto);
+    }
+    @Override
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin::write')") // Apenas admin pode deletar (como no Aetherys)
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        return super.delete(id);
+    }
 }

@@ -34,7 +34,6 @@
         public ResponseEntity<DTI> getById(@PathVariable ID id) {
             return ResponseEntity.ok(service.getById(id));
         }
-
         @PutMapping
         public ResponseEntity<DTI> update(@RequestBody DTO dto) {
             DTI response = service.update(dto);
