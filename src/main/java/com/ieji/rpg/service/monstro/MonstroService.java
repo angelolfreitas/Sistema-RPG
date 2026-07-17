@@ -2,7 +2,8 @@ package com.ieji.rpg.service.monstro;
 
 import com.ieji.rpg.domain.dto.monstro.MonstroRequest;
 import com.ieji.rpg.domain.dto.monstro.MonstroResponse;
-import com.ieji.rpg.domain.entity.Monstro;
+import com.ieji.rpg.domain.entity.monstro.MaterialMonstro;
+import com.ieji.rpg.domain.entity.monstro.Monstro;
 import com.ieji.rpg.domain.entity.MonstroConhecido;
 import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
@@ -10,6 +11,7 @@ import com.ieji.rpg.infra.repository.MonstroConhecidoRepository;
 import com.ieji.rpg.infra.repository.MonstroRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
 import com.ieji.rpg.service.AbstractService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -98,6 +100,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
                 .comportamento(object.comportamento())
                 .fraquezas(object.fraquezas())
                 .imagemUrl(object.imagemUrl())
+                .material(object.material() != null ? object.material() : MaterialMonstro.CARNE)
                 .build();
         repository.save(monstro);
 
@@ -114,6 +117,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
         entity.setComportamento(object.comportamento());
         entity.setFraquezas(object.fraquezas());
         entity.setImagemUrl(object.imagemUrl());
+        if (object.material() != null) entity.setMaterial(object.material());
     }
 
     @Override
@@ -126,6 +130,16 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     public MonstroResponse marcarEmBatalha(Integer id, boolean emBatalha) {
         this.patchEntity(id, Map.of("emBatalha", emBatalha));
         return getById(id);
+    }
+    @CacheEvict(value = "monstros", allEntries = true)
+    @Transactional
+    public MonstroResponse aplicarDano(Integer id, Integer dano) {
+        Monstro monstro = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Monstro não encontrado"));
+        int novoPv = Math.max(0, monstro.getPv() - dano);
+        monstro.setPv(novoPv);
+        repository.save(monstro);
+        return MonstroResponse.constructByEntity(monstro);
     }
 
     @CacheEvict(value = "monstros", allEntries = true)
@@ -145,5 +159,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     public MonstroResponse update(MonstroRequest dto) {
         return super.update(dto);
     }
+
+
 
 }

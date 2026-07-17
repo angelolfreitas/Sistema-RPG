@@ -4,7 +4,7 @@ import com.ieji.rpg.domain.dto.mensagem.MensagemChatRequest;
 import com.ieji.rpg.domain.dto.mensagem.MensagemChatResponse;
 import com.ieji.rpg.domain.dto.monstro.MonstroResponse;
 import com.ieji.rpg.domain.dto.user.UsuarioPresente;
-import com.ieji.rpg.domain.entity.Monstro;
+import com.ieji.rpg.domain.entity.monstro.Monstro;
 import com.ieji.rpg.domain.entity.MonstroConhecido;
 import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;

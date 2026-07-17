@@ -2,7 +2,7 @@ package com.ieji.rpg.controller;
 
 import com.ieji.rpg.domain.dto.monstro.MonstroRequest;
 import com.ieji.rpg.domain.dto.monstro.MonstroResponse;
-import com.ieji.rpg.domain.entity.Monstro;
+import com.ieji.rpg.domain.entity.monstro.Monstro;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.service.monstro.MonstroService;
 import org.springframework.http.ResponseEntity;
@@ -60,5 +60,16 @@ public class MonstroController extends AbstractController<Monstro, Integer, Mons
     @Override
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         return super.delete(id);
+    }
+
+
+    @PostMapping("/{id}/dano")
+    @PreAuthorize("hasAuthority('admin::write')")
+    public ResponseEntity<MonstroResponse> aplicarDano(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Integer> body
+    ) {
+        Integer dano = body.get("dano");
+        return ResponseEntity.ok(((MonstroService) service).aplicarDano(id, dano));
     }
 }

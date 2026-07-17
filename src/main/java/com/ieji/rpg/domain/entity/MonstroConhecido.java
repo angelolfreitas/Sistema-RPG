@@ -1,5 +1,6 @@
 package com.ieji.rpg.domain.entity;
 
+import com.ieji.rpg.domain.entity.monstro.Monstro;
 import jakarta.persistence.*;
 import lombok.*;
 

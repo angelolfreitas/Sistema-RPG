@@ -1,6 +1,6 @@
 package com.ieji.rpg.service.monstro;
 
-import com.ieji.rpg.domain.entity.Monstro;
+import com.ieji.rpg.domain.entity.monstro.Monstro;
 import com.ieji.rpg.infra.repository.MonstroRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;

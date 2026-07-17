@@ -1,4 +1,4 @@
-package com.ieji.rpg.domain.entity;
+package com.ieji.rpg.domain.entity.monstro;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -48,4 +48,9 @@ public class Monstro {
     @Column(name = "conhecido", nullable = false)
     @Builder.Default
     private Boolean conhecido = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "material", nullable = false)
+    @Builder.Default
+    private MaterialMonstro material = MaterialMonstro.CARNE;
 }
