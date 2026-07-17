@@ -52,6 +52,7 @@ public class MonstroResponse implements BaseDTO<Integer> {
                 .id(monstro.getIdMonstro())
                 .emBatalha(monstro.getEmBatalha())
                 .conhecido(false)
+                .material(monstro.getMaterial())
                 .build();
     }
 
