@@ -10,4 +10,8 @@ public interface MonstroConhecidoRepository extends JpaRepository<MonstroConheci
     boolean existsByMonstro_IdMonstroAndPersonagem_Usuario_Id(Integer idMonstro, Integer usuarioId);
     boolean existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(Integer idMonstro, Integer idPersonagem);
     List<MonstroConhecido> findByPersonagem_Usuario_Id(Integer usuarioId);
+
+    void deleteByMonstro_IdMonstro(Integer id);
+
+    void deleteByPersonagem_IdPersonagem(Integer idPersonagem);
 }

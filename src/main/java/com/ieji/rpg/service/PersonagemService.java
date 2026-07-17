@@ -5,10 +5,12 @@ import com.ieji.rpg.domain.dto.personagem.PersonagemResponse;
 import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.domain.entity.role.Role;
+import com.ieji.rpg.infra.repository.MonstroConhecidoRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
 import com.ieji.rpg.infra.repository.UserRepository;
 import com.ieji.rpg.infra.security.TokenService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,9 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
 
     private final PersonagemRepository repository;
     private final UserRepository userRepository;
+
+    @Autowired
+    private MonstroConhecidoRepository monstroConhecidoRepository;
 
 
     public PersonagemService(PersonagemRepository repository, UserRepository userRepository) {
@@ -91,5 +96,14 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
         return repository.findByUsuarioId(usuarioId).stream()
                 .map(PersonagemResponse::constructByEntity)
                 .toList();
+    }
+
+
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        monstroConhecidoRepository.deleteByPersonagem_IdPersonagem(id); // precisa existir esse método no repo
+        repository.findById(id).ifPresent(p -> p.getAetherys().clear()); // limpa a junção personagem_aetherys
+        super.delete(id);
     }
 }

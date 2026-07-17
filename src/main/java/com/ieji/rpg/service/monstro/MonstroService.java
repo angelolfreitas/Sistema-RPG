@@ -131,6 +131,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     @CacheEvict(value = "monstros", allEntries = true)
     @Override
     public void delete(Integer id) {
+        monstroConhecidoRepository.deleteByMonstro_IdMonstro(id);
         super.delete(id);
     }
     @CacheEvict(value = "monstros", allEntries = true)

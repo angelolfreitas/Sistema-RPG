@@ -49,6 +49,9 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
+    @Autowired
+    private PersonagemService personagemService;
+
     @Transactional
     public void solicitarResetSenha(String email) {
         ((UserRepository) repository).findByEmail(email).ifPresent(usuario -> {
@@ -150,17 +153,16 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
         repository.save(usuario);
     }
 
+
     @Override
     @Transactional
     public void delete(Integer id) {
         Usuario usuario = repository.findById(id).orElse(null);
-        if (usuario == null) {
-            return;
-        }
+        if (usuario == null) return;
 
         List<Personagem> personagens = personagemRepository.findByUsuarioId(id);
-        if (personagens != null && !personagens.isEmpty()) {
-            personagemRepository.deleteAll(personagens);
+        for (Personagem p : personagens) {
+            personagemService.delete(p.getIdPersonagem());
         }
 
         repository.delete(usuario);
