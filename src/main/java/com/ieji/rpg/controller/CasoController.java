@@ -2,6 +2,7 @@ package com.ieji.rpg.controller;
 
 import com.ieji.rpg.domain.dto.caso.CasoRequest;
 import com.ieji.rpg.domain.dto.caso.CasoResponse;
+import com.ieji.rpg.domain.dto.caso.CasoUsuarioResponse;
 import com.ieji.rpg.domain.entity.CasoInvestigacao;
 import com.ieji.rpg.service.CasoInvestigacaoService;
 import org.springframework.http.ResponseEntity;
@@ -38,5 +39,10 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
     public ResponseEntity<List<String>> listarJogadores(@PathVariable Integer id) {
         List<String> jogadores = ((CasoInvestigacaoService) service).listarJogadores(id);
         return ResponseEntity.ok(jogadores);
+    }
+    @GetMapping("/{id}/usuarios")
+    @PreAuthorize("hasAuthority('admin::write') or hasAuthority('manager::write')")
+    public ResponseEntity<List<CasoUsuarioResponse>> listarUsuariosCompletos(@PathVariable Integer id) {
+        return ResponseEntity.ok(((CasoInvestigacaoService) service).listarUsuariosCompletos(id));
     }
 }

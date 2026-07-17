@@ -2,10 +2,12 @@ package com.ieji.rpg.service;
 
 import com.ieji.rpg.domain.dto.caso.CasoRequest;
 import com.ieji.rpg.domain.dto.caso.CasoResponse;
+import com.ieji.rpg.domain.dto.caso.CasoUsuarioResponse;
 import com.ieji.rpg.domain.entity.CasoInvestigacao;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
 import com.ieji.rpg.infra.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,14 @@ public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, I
     public CasoInvestigacaoService(CasoInvestigacaoRepository repository, UserRepository usuarioRepository) {
         super(repository);
         this.usuarioRepository = usuarioRepository;
+    }
+    @Transactional
+    public List<CasoUsuarioResponse> listarUsuariosCompletos(Integer casoId) {
+        CasoInvestigacao caso = repository.findById(casoId)
+                .orElseThrow(() -> new EntityNotFoundException("Caso não encontrado"));
+        return caso.getJogadores().stream()
+                .map(u -> new CasoUsuarioResponse(u.getId(), u.getUsername(), u.getRole().name()))
+                .toList();
     }
 
     @Override
