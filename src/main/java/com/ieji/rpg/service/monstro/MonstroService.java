@@ -1,4 +1,4 @@
-package com.ieji.rpg.service;
+package com.ieji.rpg.service.monstro;
 
 import com.ieji.rpg.domain.dto.monstro.MonstroRequest;
 import com.ieji.rpg.domain.dto.monstro.MonstroResponse;
@@ -9,14 +9,15 @@ import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.infra.repository.MonstroConhecidoRepository;
 import com.ieji.rpg.infra.repository.MonstroRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
+import com.ieji.rpg.service.AbstractService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class MonstroService extends AbstractService<Monstro, Integer, MonstroRequest, MonstroResponse> {
@@ -29,6 +30,8 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     private MonstroConhecidoRepository monstroConhecidoRepository;
     @Autowired
     private PersonagemRepository personagemRepository;
+    @Autowired
+    private MonstroCacheService monstroCacheService;
     @Transactional
     public void registrarConhecimentoParaUsuarios(Integer monstroId, List<Integer> usuariosIds) {
         Monstro monstro = repository.findById(monstroId).orElse(null);
@@ -57,7 +60,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
         boolean ehMestre = usuario.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("admin::write") || a.getAuthority().equals("admin::write"));
 
-        List<Monstro> todos = repository.findAll();
+        List<Monstro> todos = monstroCacheService.listarTodosCacheado();
 
         return todos.stream().map(m -> {
             MonstroResponse monstroResponse = MonstroResponse.constructByEntity(m);
@@ -76,6 +79,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
 
         }).toList();
     }
+    @CacheEvict(value = "monstros", allEntries = true)
     @Transactional
     public MonstroResponse alterarVida(Integer id, Integer novoPv) {
         this.patchEntity(id, Map.of("pv", novoPv));
@@ -84,7 +88,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     }
 
     @Override
-    MonstroResponse construct(MonstroRequest object) {
+    protected MonstroResponse construct(MonstroRequest object) {
         Monstro monstro = Monstro.builder()
                 .nome(object.nome())
                 .pv(object.pv())
@@ -116,10 +120,29 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     protected MonstroResponse convertToResponse(Monstro entity) {
         return MonstroResponse.constructByEntity(entity);
     }
+
+    @CacheEvict(value = "monstros", allEntries = true)
     @Transactional
     public MonstroResponse marcarEmBatalha(Integer id, boolean emBatalha) {
         this.patchEntity(id, Map.of("emBatalha", emBatalha));
         return getById(id);
+    }
+
+    @CacheEvict(value = "monstros", allEntries = true)
+    @Override
+    public void delete(Integer id) {
+        super.delete(id);
+    }
+    @CacheEvict(value = "monstros", allEntries = true)
+    @Override
+    public Optional<MonstroResponse> create(MonstroRequest dto) {
+        return super.create(dto);
+    }
+
+    @CacheEvict(value = "monstros", allEntries = true)
+    @Override
+    public MonstroResponse update(MonstroRequest dto) {
+        return super.update(dto);
     }
 
 }

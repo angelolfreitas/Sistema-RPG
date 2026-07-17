@@ -24,7 +24,7 @@ public class PistaService extends AbstractService<Pista, Integer, PistaRequest, 
     }
 
     @Override
-    PistaResponse construct(PistaRequest object) {
+    protected PistaResponse construct(PistaRequest object) {
         var caso = casoRepository.findById(object.idCaso())
                 .orElseThrow(() -> new EntityNotFoundException("Caso não encontrado"));
 

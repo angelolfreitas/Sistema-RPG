@@ -1,11 +1,10 @@
 package com.ieji.rpg.controller;
 
-import com.ieji.rpg.domain.dto.inventario.InventarioResponse;
 import com.ieji.rpg.domain.dto.monstro.MonstroRequest;
 import com.ieji.rpg.domain.dto.monstro.MonstroResponse;
 import com.ieji.rpg.domain.entity.Monstro;
 import com.ieji.rpg.domain.entity.Usuario;
-import com.ieji.rpg.service.MonstroService;
+import com.ieji.rpg.service.monstro.MonstroService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,5 +43,22 @@ public class MonstroController extends AbstractController<Monstro, Integer, Mons
     @Override
     public ResponseEntity<MonstroResponse> getById(Integer integer) {
         return super.getById(integer);
+    }
+    @PreAuthorize("hasAuthority('admin::write')")
+    @Override
+    public ResponseEntity<MonstroResponse> create(@RequestBody MonstroRequest dto) {
+        return super.create(dto);
+    }
+
+    @PreAuthorize("hasAuthority('admin::write')")
+    @Override
+    public ResponseEntity<MonstroResponse> update(@RequestBody MonstroRequest dto) {
+        return super.update(dto);
+    }
+
+    @PreAuthorize("hasAuthority('admin::write')")
+    @Override
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        return super.delete(id);
     }
 }

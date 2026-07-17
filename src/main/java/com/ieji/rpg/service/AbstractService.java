@@ -15,12 +15,12 @@ import java.util.Optional;
 
 public abstract class AbstractService <T, ID, DTO extends BaseDTO<ID>, DTI>{
 
-    JpaRepository<T, ID> repository;
+    protected JpaRepository<T, ID> repository;
     public AbstractService(JpaRepository<T, ID> repository) {
         this.repository = repository;
     }
 
-    abstract DTI construct(DTO object);
+    protected abstract DTI construct(DTO object);
     protected abstract void updateData(T entity, DTO object);
     protected abstract DTI convertToResponse(T entity);
 

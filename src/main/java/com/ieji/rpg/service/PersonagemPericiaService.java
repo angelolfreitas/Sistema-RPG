@@ -27,7 +27,7 @@ public class PersonagemPericiaService extends AbstractService<PersonagemPericia,
     }
 
     @Override
-    PersonagemPericiaResponse construct(PersonagemPericiaRequest object) {
+    protected PersonagemPericiaResponse construct(PersonagemPericiaRequest object) {
         var personagem = personagemRepository.findById(object.id().getIdPersonagem())
                 .orElseThrow(() -> new EntityNotFoundException("Personagem não encontrado"));
         var pericia = periciaRepository.findById(object.id().getIdPericia())

@@ -16,7 +16,7 @@ public class PericiaService extends AbstractService<Pericia, Integer, PericiaReq
     }
 
     @Override
-    PericiaResponse construct(PericiaRequest object) {
+    protected PericiaResponse construct(PericiaRequest object) {
         Pericia pericia = Pericia.builder()
                 .nome(object.nome())
                 .atributoBase(object.atributoBase())

@@ -19,7 +19,6 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
         super(service);
     }
 
-    // Sobrescrevendo o create padrão para restringir permissões de quem pode criar o Caso
     @Override
     @PostMapping
     @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
@@ -27,11 +26,9 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
         return super.create(dto);
     }
 
-    // Endpoints específicos para gerenciamento da mesa/sessão
     @PostMapping("/{id}/entrar")
     @PreAuthorize("hasAuthority('user::write') or hasAuthority('manager::write')")
     public ResponseEntity<Void> entrarNaSessao(@PathVariable Integer id, Authentication auth) {
-        // Faz o cast seguro pois sabemos que o service injetado é o CasoInvestigacaoService
         ((CasoInvestigacaoService) service).adicionarJogador(id, auth.getName());
         return ResponseEntity.ok().build();
     }

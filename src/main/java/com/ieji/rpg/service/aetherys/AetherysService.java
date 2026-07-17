@@ -1,21 +1,47 @@
-package com.ieji.rpg.service;
+package com.ieji.rpg.service.aetherys;
 
 import com.ieji.rpg.domain.dto.aetherys.AetherysRequest;
 import com.ieji.rpg.domain.dto.aetherys.AetherysResponse;
 import com.ieji.rpg.domain.entity.Aetherys;
 import com.ieji.rpg.infra.repository.AetherysRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.ieji.rpg.service.AbstractService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.util.List;
+import java.util.Optional;
+
 @Service
-public class AetherysService extends AbstractService<Aetherys, Integer, AetherysRequest, AetherysResponse>{
+public class AetherysService extends AbstractService<Aetherys, Integer, AetherysRequest, AetherysResponse> {
     AetherysService(AetherysRepository aetherysRepository) {
         super(aetherysRepository);
     }
+    @Cacheable(value = "aetherys", key = "'all'")
     @Override
-    AetherysResponse construct(AetherysRequest object) {
+    public List<AetherysResponse> findAll() {
+        return super.findAll();
+    }
+
+    @CacheEvict(value = "aetherys", allEntries = true)
+    @Override
+    public Optional<AetherysResponse> create(AetherysRequest dto) {
+        return super.create(dto);
+    }
+
+    @CacheEvict(value = "aetherys", allEntries = true)
+    @Override
+    public AetherysResponse update(AetherysRequest dto) {
+        return super.update(dto);
+    }
+
+    @CacheEvict(value = "aetherys", allEntries = true)
+    @Override
+    public void delete(Integer id) {
+        super.delete(id);
+    }
+    @Override
+    protected AetherysResponse construct(AetherysRequest object) {
 
         Aetherys aetherys = Aetherys.builder()
                 .nome(object.nome())

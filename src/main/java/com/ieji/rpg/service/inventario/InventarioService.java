@@ -1,4 +1,4 @@
-package com.ieji.rpg.service;
+package com.ieji.rpg.service.inventario;
 
 import com.ieji.rpg.domain.dto.inventario.InventarioRequest;
 import com.ieji.rpg.domain.dto.inventario.InventarioResponse;
@@ -9,10 +9,12 @@ import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.infra.repository.InventarioRepository;
 import com.ieji.rpg.infra.repository.ItemRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
+import com.ieji.rpg.service.AbstractService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,7 +35,7 @@ public class InventarioService
     }
 
     @Override
-    InventarioResponse construct(InventarioRequest object) {
+    protected InventarioResponse construct(InventarioRequest object) {
         var personagem = personagemRepository.findById(object.id().getIdPersonagem())
                 .orElseThrow(() -> new EntityNotFoundException("Personagem não encontrado"));
 
@@ -61,8 +63,8 @@ public class InventarioService
     protected InventarioResponse convertToResponse(Inventario entity) {
         return InventarioResponse.constructByEntity(entity);
     }
-
     @Transactional
+    @CacheEvict(value = {"inventario", "itens"}, allEntries = true)
     public Optional<Inventario> alterarQuantidade(Integer idPersonagem, Integer idItem, int delta) {
         InventarioId id = new InventarioId(idPersonagem, idItem);
         Inventario inventario = repository.findById(id)
@@ -89,6 +91,7 @@ public class InventarioService
     }
 
     @Transactional
+    @CacheEvict(value = {"inventario", "itens"}, allEntries = true)
     public Optional<Inventario> add(Integer idPersonagem, Integer idItem, Integer quantity) {
 
         if (idPersonagem == null || idItem == null || quantity == null) {
@@ -123,7 +126,8 @@ public class InventarioService
         return Optional.of(repository.save(inventario));
     }
 
-        @Transactional
+    @Transactional
+    @CacheEvict(value = {"inventario", "itens"}, allEntries = true)
         public void remove(Integer idPersonagem, Integer idItem){
 
         InventarioId inventarioId = new InventarioId(idPersonagem, idItem);
@@ -137,6 +141,7 @@ public class InventarioService
         ((InventarioRepository)repository).deleteById(inventarioId);
     }
 
+    @Cacheable(value = "inventario", key = "#usuarioId")
     public List<InventarioResponse> listarPorUsuario(Integer usuarioId) {
         return ((InventarioRepository) repository)
                 .findByPersonagem_Usuario_Id(usuarioId)

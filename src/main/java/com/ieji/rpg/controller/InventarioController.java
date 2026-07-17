@@ -7,7 +7,7 @@ import com.ieji.rpg.domain.dto.personagem.PersonagemResponse;
 import com.ieji.rpg.domain.entity.Inventario;
 import com.ieji.rpg.domain.entity.InventarioId;
 import com.ieji.rpg.domain.entity.Usuario;
-import com.ieji.rpg.service.InventarioService;
+import com.ieji.rpg.service.inventario.InventarioService;
 import com.ieji.rpg.service.PersonagemService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,20 +39,17 @@ public class InventarioController extends AbstractController<Inventario, Inventa
                 .anyMatch(a -> a.getAuthority().equals("manager::write") || a.getAuthority().equals("admin::write"));
     }
 
-    // dono é resolvido a partir do usuário logado; se ele não tem esse personagem, ou não é mestre, 403
     private boolean podeMexerNoPersonagem(Integer idPersonagem, Usuario usuario) {
         if (ehMestre(usuario)) return true;
         PersonagemResponse personagem = personagemService.getById(idPersonagem);
         return personagem.usuarioId() != null && personagem.usuarioId().equals(usuario.getId());
     }
 
-    // Endpoint novo: cada usuário só vê o próprio inventário
     @GetMapping("/meu")
     public ResponseEntity<List<InventarioResponse>> meuInventario(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(((InventarioService) service).listarPorUsuario(usuario.getId()));
     }
 
-    // GET geral (herdado) fica restrito a mestres — jogador comum não deveria bater aqui
     @Override
     @GetMapping
     @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")

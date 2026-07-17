@@ -24,7 +24,7 @@ public class PerguntaService extends AbstractService<Pergunta, Integer, Pergunta
     }
 
     @Override
-    PerguntaResponse construct(PerguntaRequest object) {
+    protected PerguntaResponse construct(PerguntaRequest object) {
         var caso = casoRepository.findById(object.idCaso())
                 .orElseThrow(() -> new EntityNotFoundException("Caso não encontrado"));
 

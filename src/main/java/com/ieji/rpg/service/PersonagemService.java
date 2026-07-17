@@ -30,7 +30,7 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
     }
 
     @Override
-    PersonagemResponse construct(PersonagemRequest object) {
+    protected PersonagemResponse construct(PersonagemRequest object) {
         Usuario usuario = userRepository.findById(object.usuarioId())
                 .orElseThrow(() -> new EntityNotFoundException("Usuário associado não encontrado"));
         Personagem personagem = Personagem.builder()

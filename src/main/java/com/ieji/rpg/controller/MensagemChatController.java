@@ -19,7 +19,6 @@ public class MensagemChatController extends AbstractController<MensagemChat, Int
         super(service);
     }
 
-    // Endpoint customizado para pegar o histórico inteiro de uma sessão específica
     @GetMapping("/caso/{idCaso}")
     public ResponseEntity<List<MensagemChatResponse>> getHistorico(@PathVariable Integer idCaso) {
         List<MensagemChatResponse> historico = ((MensagemChatService) service).listarHistoricoDoCaso(idCaso);

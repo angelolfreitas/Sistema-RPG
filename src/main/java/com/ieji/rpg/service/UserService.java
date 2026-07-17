@@ -98,7 +98,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
 
     @Override
-    LoginResponse construct(LoginRequest object) {
+    protected LoginResponse construct(LoginRequest object) {
         Usuario usuario = Usuario.builder()
                 .role(Role.USER)
                 .username(object.username())
