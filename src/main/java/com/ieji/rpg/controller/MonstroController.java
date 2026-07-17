@@ -52,7 +52,7 @@ public class MonstroController extends AbstractController<Monstro, Integer, Mons
         return super.getById(integer);
     }
 
-    @PreAuthorize("hasAuthority('admin::write')")
+    @PreAuthorize("hasAuthority('manager::write')")
     @Override
     public ResponseEntity<MonstroResponse> create(@RequestBody MonstroRequest dto) {
 
