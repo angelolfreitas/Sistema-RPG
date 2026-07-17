@@ -16,7 +16,12 @@ import java.time.Instant;
 public class MonstroConhecido {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne @JoinColumn(name = "id_monstro") private Monstro monstro;
-    @ManyToOne @JoinColumn(name = "id_personagem") private Personagem personagem;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_monstro")
+    private Monstro monstro;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_personagem")
+    private Personagem personagem;
     private Instant conhecidoEm;
 }

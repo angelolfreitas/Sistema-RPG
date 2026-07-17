@@ -15,12 +15,12 @@ public class Inventario {
     @EmbeddedId
     private InventarioId id = new InventarioId();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("idPersonagem")
     @JoinColumn(name = "id_personagem")
     private Personagem personagem;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("idItem")
     @JoinColumn(name = "id_item")
     private Item item;
