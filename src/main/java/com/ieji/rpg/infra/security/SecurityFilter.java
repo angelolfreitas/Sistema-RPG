@@ -1,7 +1,6 @@
 package com.ieji.rpg.infra.security;
 
 
-import com.ieji.rpg.controller.MonstroController;
 import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
@@ -10,8 +9,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,9 +22,6 @@ import java.util.Collections;
 //estudar filter depois
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
-    private static final Logger log = LoggerFactory.getLogger(SecurityFilter.class);
-
-
     @Autowired
     TokenService tokenService;
     @Autowired
@@ -40,12 +34,10 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (login != null) {
             userRepository.findByEmail(login).ifPresent(user -> {
                 var authorities = user.getAuthorities();
-                log.info("SecurityFilter -> login={}, authorities={}", login, authorities);
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             });
-        } else {
-            log.info("SecurityFilter -> token inválido ou ausente. Token bruto: {}", token);
+
         }
         filterChain.doFilter(request, response);
     }

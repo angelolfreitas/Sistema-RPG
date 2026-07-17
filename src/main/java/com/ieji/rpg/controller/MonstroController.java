@@ -22,9 +22,6 @@ import java.util.Map;
 @PreAuthorize("hasAuthority('user::write')")
 public class MonstroController extends AbstractController<Monstro, Integer, MonstroRequest, MonstroResponse> {
 
-    private static final Logger log = LoggerFactory.getLogger(MonstroController.class);
-
-
     protected MonstroController(MonstroService service) {
         super(service);
     }
@@ -57,12 +54,6 @@ public class MonstroController extends AbstractController<Monstro, Integer, Mons
     public ResponseEntity<MonstroResponse> create(@RequestBody MonstroRequest dto) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info("=== DEBUG /monstro CREATE ===");
-        log.info("Authenticated: {}", auth != null && auth.isAuthenticated());
-        log.info("Principal type: {}", auth != null ? auth.getPrincipal().getClass().getName() : "null");
-        log.info("Authorities: {}", auth != null ? auth.getAuthorities() : "null");
-        log.info("DTO recebido: {}", dto);
-        log.info("==============================");
 
         return service.create(dto)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response))
