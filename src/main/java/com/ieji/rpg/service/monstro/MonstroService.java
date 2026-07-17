@@ -149,7 +149,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     @Override
     @Transactional
     public void delete(Integer id) {
-        List<CasoInvestigacao> casosEmBatalha = casoRepository.findByid_monstro_atual(id);
+        List<CasoInvestigacao> casosEmBatalha = casoRepository.findByMonstroAtual_IdMonstro(id);
         for (CasoInvestigacao caso : casosEmBatalha) {
             caso.setMonstroAtual(null);
             casoRepository.save(caso);
