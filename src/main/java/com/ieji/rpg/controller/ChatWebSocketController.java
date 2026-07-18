@@ -114,9 +114,7 @@ public class ChatWebSocketController {
 
     @MessageMapping("/caso/{casoId}/monstro/{monstroId}/batalha")
     public void iniciarBatalha(@DestinationVariable Integer casoId, @DestinationVariable Integer monstroId) {
-        List<Integer> usuariosOnlineIds = presencaPorCaso.getOrDefault(casoId, Map.of())
-                .values().stream().map(UsuarioPresente::id).toList();
-        monstroService.registrarConhecimentoParaUsuarios(monstroId, usuariosOnlineIds);
+        monstroService.registrarConhecimentoParaTodos(monstroId);
         MonstroResponse monstro = monstroService.marcarEmBatalha(monstroId, true);
         messagingTemplate.convertAndSend("/topic/caso/" + casoId + "/batalha", monstro);
     }
@@ -125,28 +123,5 @@ public class ChatWebSocketController {
     public void encerrarBatalha(@DestinationVariable Integer casoId, @DestinationVariable Integer monstroId) {
         MonstroResponse monstro = monstroService.marcarEmBatalha(monstroId, false);
         messagingTemplate.convertAndSend("/topic/caso/" + casoId + "/batalha", monstro);
-    }
-
-    private void registrarConhecimento(Integer casoId, Integer monstroId) {
-        Collection<UsuarioPresente> presentes = presencaPorCaso.getOrDefault(casoId, Map.of()).values();
-        if (presentes.isEmpty()) return;
-
-        Monstro monstro = monstroRepository.findById(monstroId).orElse(null);
-        if (monstro == null) return;
-
-        for (UsuarioPresente up : presentes) {
-            List<Personagem> personagens = personagemRepository.findByUsuarioId(up.id());
-            for (Personagem p : personagens) {
-                boolean jaConhece = monstroConhecidoRepository
-                        .existsByMonstro_IdMonstroAndPersonagem_Usuario_Id(monstroId, up.id());
-                if (!jaConhece) {
-                    monstroConhecidoRepository.save(MonstroConhecido.builder()
-                            .monstro(monstro)
-                            .personagem(p)
-                            .conhecidoEm(Instant.now())
-                            .build());
-                }
-            }
-        }
     }
 }

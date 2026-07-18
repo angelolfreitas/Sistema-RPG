@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -39,24 +40,22 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     @Autowired
     private CasoInvestigacaoRepository casoRepository;
     @Transactional
-    public void registrarConhecimentoParaUsuarios(Integer monstroId, List<Integer> usuariosIds) {
+    public void registrarConhecimentoParaTodos(Integer monstroId) {
         Monstro monstro = repository.findById(monstroId).orElse(null);
-        if (monstro == null || usuariosIds.isEmpty()) return;
+        if (monstro == null) return;
 
-        for (Integer usuarioId : usuariosIds) {
-            List<Personagem> personagens = personagemRepository.findByUsuarioId(usuarioId);
+        List<Personagem> personagens = personagemRepository.findAll();
 
-            for (Personagem p : personagens) {
-                boolean jaConhece = monstroConhecidoRepository
-                        .existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(monstroId, p.getIdPersonagem());
+        for (Personagem p : personagens) {
+            boolean jaConhece = monstroConhecidoRepository
+                    .existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(monstroId, p.getIdPersonagem());
 
-                if (!jaConhece) {
-                    monstroConhecidoRepository.save(MonstroConhecido.builder()
-                            .monstro(monstro)
-                            .personagem(p)
-                            .conhecidoEm(java.time.Instant.now())
-                            .build());
-                }
+            if (!jaConhece) {
+                monstroConhecidoRepository.save(MonstroConhecido.builder()
+                        .monstro(monstro)
+                        .personagem(p)
+                        .conhecidoEm(java.time.Instant.now())
+                        .build());
             }
         }
     }
@@ -64,7 +63,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
 
     public List<MonstroResponse> listarParaUsuario(Usuario usuario) {
         boolean ehMestre = usuario.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("admin::write") || a.getAuthority().equals("admin::write"));
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "admin::write") || a.getAuthority().equals("admin::write"));
 
         List<Monstro> todos = monstroCacheService.listarTodosCacheado();
 
