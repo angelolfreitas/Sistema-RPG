@@ -6,9 +6,12 @@ import com.ieji.rpg.domain.dto.caso.CasoUsuarioResponse;
 import com.ieji.rpg.domain.entity.CasoInvestigacao;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
+import com.ieji.rpg.infra.repository.MensagemChatRepository;
+import com.ieji.rpg.infra.repository.SessaoAgendadaRepository;
 import com.ieji.rpg.infra.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -87,5 +90,25 @@ public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, I
         return caso.getJogadores().stream()
                 .map(Usuario::getUsername)
                 .toList();
+    }
+    @Autowired
+    private MensagemChatRepository mensagemChatRepository;
+
+    @Autowired
+    private SessaoAgendadaRepository sessaoAgendadaRepository;
+
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        CasoInvestigacao caso = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Caso não encontrado"));
+
+        mensagemChatRepository.deleteByCasoIdCaso(id);
+        sessaoAgendadaRepository.deleteByCasoIdCaso(id);
+
+        caso.getJogadores().clear();
+        repository.save(caso);
+
+        super.delete(id);
     }
 }

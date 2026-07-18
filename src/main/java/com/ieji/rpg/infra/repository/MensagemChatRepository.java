@@ -12,4 +12,5 @@ public interface MensagemChatRepository extends JpaRepository<MensagemChat, Inte
     List<MensagemChat> findByCasoIdCasoOrderByEnviadoEmAsc(Integer casoId);
     List<MensagemChat> findByAutor_Id(Integer idAutor);
     void deleteByCasoIdCaso(Integer idCaso);
+
 }

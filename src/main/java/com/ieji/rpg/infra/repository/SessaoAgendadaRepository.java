@@ -8,4 +8,5 @@ import java.util.List;
 public interface SessaoAgendadaRepository extends JpaRepository<SessaoAgendada, Integer> {
     List<SessaoAgendada> findByCaso_IdCasoOrderByDataSessaoAsc(Integer idCaso);
     void deleteByCasoIdCaso(Integer idCaso);
+
 }
