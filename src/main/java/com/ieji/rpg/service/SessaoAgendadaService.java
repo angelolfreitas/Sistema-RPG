@@ -84,5 +84,32 @@ public class SessaoAgendadaService {
                 sessao.getDataSessao(),
                 sessao.getCriadoEm()
         );
+
+
+    }
+
+    @Transactional
+    public void cancelar(Integer idCaso, Integer idSessao) {
+        SessaoAgendada sessao = sessaoAgendadaRepository.findById(idSessao)
+                .filter(s -> s.getCaso().getIdCaso().equals(idCaso))
+                .orElseThrow(() -> new EntityNotFoundException("Sessão agendada não encontrada"));
+
+        notificarCancelamento(sessao.getCaso(), sessao);
+        sessaoAgendadaRepository.delete(sessao);
+    }
+
+    private void notificarCancelamento(CasoInvestigacao caso, SessaoAgendada sessao) {
+        String dataFormatada = sessao.getDataSessao().format(FORMATADOR);
+        String assunto = "Sessão desmarcada — " + caso.getNomeCaso();
+
+        caso.getJogadores().stream()
+                .filter(usuario -> usuario.getRole() == Role.USER || usuario.getRole() == Role.MANAGER)
+                .forEach(usuario -> {
+                    String corpo = "Agente " + usuario.getUsername() + ",\n\n"
+                            + "A sessão marcada para " + dataFormatada + " no caso \"" + caso.getNomeCaso() + "\" foi desmarcada pelo mestre.\n\n"
+                            + "Aviso original:\n" + sessao.getConteudo();
+
+                    emailService.enviar(usuario.getEmail(), assunto, corpo);
+                });
     }
 }

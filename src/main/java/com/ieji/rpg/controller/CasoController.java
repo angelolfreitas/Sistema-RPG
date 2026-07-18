@@ -6,6 +6,7 @@ import com.ieji.rpg.domain.dto.caso.CasoUsuarioResponse;
 import com.ieji.rpg.domain.dto.sessao.AgendarSessaoRequest;
 import com.ieji.rpg.domain.dto.sessao.SessaoAgendadaResponse;
 import com.ieji.rpg.domain.entity.CasoInvestigacao;
+import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.service.CasoInvestigacaoService;
 import com.ieji.rpg.service.SessaoAgendadaService;
 import org.springframework.http.ResponseEntity;
@@ -49,7 +50,8 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
     @PostMapping("/{id}/entrar")
     @PreAuthorize("hasAuthority('user::write')")
     public ResponseEntity<Void> entrarNaSessao(@PathVariable Integer id, Authentication auth) {
-        ((CasoInvestigacaoService) service).adicionarJogador(id, auth.getName());
+        Usuario usuarioLogado = (Usuario) auth.getPrincipal();
+        ((CasoInvestigacaoService) service).adicionarJogador(id, usuarioLogado.getEmail());
         return ResponseEntity.ok().build();
     }
 
@@ -76,5 +78,12 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
     @PreAuthorize("hasAuthority('admin::write')") // Apenas admin pode deletar (como no Aetherys)
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         return super.delete(id);
+    }
+
+    @DeleteMapping("/{id}/sessoes/{idSessao}")
+    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
+    public ResponseEntity<Void> cancelarSessao(@PathVariable Integer id, @PathVariable Integer idSessao) {
+        sessaoAgendadaService.cancelar(id, idSessao);
+        return ResponseEntity.noContent().build();
     }
 }
