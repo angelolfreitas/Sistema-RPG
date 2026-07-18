@@ -9,6 +9,7 @@ import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.domain.entity.role.Role;
 import com.ieji.rpg.service.AbstractService;
 import com.ieji.rpg.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,10 @@ public class UserController extends AbstractController<Usuario, Integer, LoginRe
     @PreAuthorize("hasAnyAuthority('manager::write', 'admin::write')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) { return super.delete(id); }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest body) {

@@ -180,25 +180,48 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
             }
         }
 
-        // casos onde o usuário é mestre: precisa limpar o que aponta pra eles antes de deletar
+        // casos onde o usuário é mestre: transfere para outro admin em vez de apagar
         List<CasoInvestigacao> casosComoMestre = casoInvestigacaoRepository.findByMestre_Id(id);
         for (CasoInvestigacao caso : casosComoMestre) {
-            mensagemChat.deleteByCasoIdCaso(caso.getIdCaso());
-            sessaoAgendadaRepository.deleteByCasoIdCaso(caso.getIdCaso());
+            Usuario substituto = encontrarSubstitutoMestre(caso, id);
+
+            if (substituto == null) {
+                throw new IllegalStateException(
+                        "Não é possível excluir este usuário: ele é mestre da sessão \"" + caso.getNomeCaso() +
+                                "\" e não há outro administrador cadastrado para assumi-la. " +
+                                "Cadastre outro mestre (admin) antes de excluir esta conta."
+                );
+            }
+
+            caso.setMestre(substituto);
+            caso.getJogadores().remove(usuario); // se o mestre também estava como jogador, tira
+            casoInvestigacaoRepository.save(caso);
         }
-        casoInvestigacaoRepository.deleteAll(casosComoMestre);
 
         List<Personagem> personagens = personagemRepository.findByUsuarioId(id);
         for (Personagem p : personagens) {
             personagemService.delete(p.getIdPersonagem());
         }
 
-        // mensagens do usuário em casos onde ele NÃO é mestre: mantém histórico, só desvincula
+        // mensagens do usuário: mantém histórico, só desvincula
         List<MensagemChat> mensagens = mensagemChat.findByAutor_Id(id);
         mensagens.forEach(m -> m.setAutor(null));
         mensagemChat.saveAll(mensagens);
 
         repository.delete(usuario);
+    }
+
+    private Usuario encontrarSubstitutoMestre(CasoInvestigacao caso, Integer idExcluido) {
+        // 1ª prioridade: outro ADMIN que já está na sessão como jogador
+        Usuario candidatoNaSessao = caso.getJogadores().stream()
+                .filter(u -> !u.getId().equals(idExcluido) && u.getRole() == Role.ADMIN)
+                .findFirst()
+                .orElse(null);
+
+        if (candidatoNaSessao != null) return candidatoNaSessao;
+
+        // 2ª prioridade: qualquer outro ADMIN do sistema
+        return ((UserRepository) repository).findFirstByRoleAndIdNot(Role.ADMIN, idExcluido).orElse(null);
     }
 
     public boolean getByEmail(String adminEmail) {
