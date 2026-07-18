@@ -3,8 +3,11 @@ package com.ieji.rpg.controller;
 import com.ieji.rpg.domain.dto.caso.CasoRequest;
 import com.ieji.rpg.domain.dto.caso.CasoResponse;
 import com.ieji.rpg.domain.dto.caso.CasoUsuarioResponse;
+import com.ieji.rpg.domain.dto.sessao.AgendarSessaoRequest;
+import com.ieji.rpg.domain.dto.sessao.SessaoAgendadaResponse;
 import com.ieji.rpg.domain.entity.CasoInvestigacao;
 import com.ieji.rpg.service.CasoInvestigacaoService;
+import com.ieji.rpg.service.SessaoAgendadaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -16,8 +19,24 @@ import java.util.List;
 @RequestMapping("/casos")
 public class CasoController extends AbstractController<CasoInvestigacao, Integer, CasoRequest, CasoResponse> {
 
-    protected CasoController(CasoInvestigacaoService service) {
+    private final SessaoAgendadaService sessaoAgendadaService;
+
+    protected CasoController(CasoInvestigacaoService service, SessaoAgendadaService sessaoAgendadaService) {
         super(service);
+        this.sessaoAgendadaService = sessaoAgendadaService;
+    }
+
+    @PostMapping("/{id}/sessoes")
+    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
+    public ResponseEntity<SessaoAgendadaResponse> agendarSessao(@PathVariable Integer id,
+                                                                @RequestBody AgendarSessaoRequest request) {
+        return ResponseEntity.ok(sessaoAgendadaService.agendar(id, request));
+    }
+
+    @GetMapping("/{id}/sessoes")
+    @PreAuthorize("hasAuthority('user::read')")
+    public ResponseEntity<List<SessaoAgendadaResponse>> listarSessoesAgendadas(@PathVariable Integer id) {
+        return ResponseEntity.ok(sessaoAgendadaService.listar(id));
     }
 
     @Override
