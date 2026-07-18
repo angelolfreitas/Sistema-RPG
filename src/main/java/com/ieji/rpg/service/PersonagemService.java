@@ -5,9 +5,7 @@ import com.ieji.rpg.domain.dto.personagem.PersonagemResponse;
 import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.domain.entity.role.Role;
-import com.ieji.rpg.infra.repository.MonstroConhecidoRepository;
-import com.ieji.rpg.infra.repository.PersonagemRepository;
-import com.ieji.rpg.infra.repository.UserRepository;
+import com.ieji.rpg.infra.repository.*;
 import com.ieji.rpg.infra.security.TokenService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -27,6 +25,12 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
     @Autowired
     private MonstroConhecidoRepository monstroConhecidoRepository;
 
+    @Autowired
+    private InventarioRepository inventarioRepository;
+
+    @Autowired
+    private PersonagemPericiaRepository personagemPericiaRepository;
+
 
     public PersonagemService(PersonagemRepository repository, UserRepository userRepository) {
         super(repository);
@@ -34,6 +38,16 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
         this.userRepository = userRepository;
     }
 
+
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        inventarioRepository.deleteByPersonagem_IdPersonagem(id);
+        personagemPericiaRepository.deleteByPersonagem_IdPersonagem(id);
+        monstroConhecidoRepository.deleteByPersonagem_IdPersonagem(id); // já existia
+        repository.findById(id).ifPresent(p -> p.getAetherys().clear());
+        super.delete(id);
+    }
     @Override
     protected PersonagemResponse construct(PersonagemRequest object) {
         Usuario usuario = userRepository.findById(object.usuarioId())
@@ -99,11 +113,4 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
     }
 
 
-    @Override
-    @Transactional
-    public void delete(Integer id) {
-        monstroConhecidoRepository.deleteByPersonagem_IdPersonagem(id); // precisa existir esse método no repo
-        repository.findById(id).ifPresent(p -> p.getAetherys().clear()); // limpa a junção personagem_aetherys
-        super.delete(id);
-    }
 }

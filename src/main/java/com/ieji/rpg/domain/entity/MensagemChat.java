@@ -22,7 +22,7 @@ public class MensagemChat {
     private CasoInvestigacao caso;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_autor", nullable = false)
+    @JoinColumn(name = "id_autor", nullable = true)
     private Usuario autor;
 
     @Column(nullable = false, columnDefinition = "TEXT")

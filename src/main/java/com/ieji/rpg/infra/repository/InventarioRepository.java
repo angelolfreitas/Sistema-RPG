@@ -16,4 +16,6 @@ public interface InventarioRepository extends JpaRepository<Inventario, Inventar
             "JOIN FETCH p.usuario " +
             "WHERE p.usuario.id = :usuarioId")
     List<Inventario> findByPersonagem_Usuario_Id(@Param("usuarioId") Integer usuarioId);
+
+    void deleteByPersonagem_IdPersonagem(Integer idPersonagem);
 }

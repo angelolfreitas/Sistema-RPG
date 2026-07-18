@@ -2,15 +2,9 @@ package com.ieji.rpg.service;
 
 import com.ieji.rpg.domain.dto.user.LoginRequest;
 import com.ieji.rpg.domain.dto.user.LoginResponse;
-import com.ieji.rpg.domain.entity.CasoInvestigacao;
-import com.ieji.rpg.domain.entity.PasswordResetToken;
-import com.ieji.rpg.domain.entity.Personagem;
-import com.ieji.rpg.domain.entity.Usuario;
+import com.ieji.rpg.domain.entity.*;
 import com.ieji.rpg.domain.entity.role.Role;
-import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
-import com.ieji.rpg.infra.repository.PasswordResetTokenRepository;
-import com.ieji.rpg.infra.repository.PersonagemRepository;
-import com.ieji.rpg.infra.repository.UserRepository;
+import com.ieji.rpg.infra.repository.*;
 import com.ieji.rpg.infra.security.TokenService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServlet;
@@ -39,12 +33,18 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
     private final CasoInvestigacaoRepository casoInvestigacaoRepository;
 
+    private final SessaoAgendadaRepository sessaoAgendadaRepository;
+
     public UserService(UserRepository repository,
                        PersonagemRepository personagemRepository,
-                       CasoInvestigacaoRepository casoInvestigacaoRepository) {
+                       CasoInvestigacaoRepository casoInvestigacaoRepository,
+                       MensagemChatRepository mensagemChat,
+                       SessaoAgendadaRepository sessaoAgendadaRepository) {
         super(repository);
         this.personagemRepository = personagemRepository;
         this.casoInvestigacaoRepository = casoInvestigacaoRepository;
+        this.mensagemChat = mensagemChat;
+        this.sessaoAgendadaRepository = sessaoAgendadaRepository;
     }
 
     @Autowired
@@ -58,6 +58,9 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
     @Autowired
     private PersonagemService personagemService;
+
+
+    private final MensagemChatRepository mensagemChat;
 
     @Transactional
     public void solicitarResetSenha(String email) {
@@ -169,7 +172,6 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
         tokenRepository.deleteByUsuario_Id(id);
 
-
         List<CasoInvestigacao> todosCasos = casoInvestigacaoRepository.findAll();
         for (CasoInvestigacao caso : todosCasos) {
             if (caso.getJogadores().contains(usuario)) {
@@ -178,13 +180,23 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
             }
         }
 
+        // casos onde o usuário é mestre: precisa limpar o que aponta pra eles antes de deletar
         List<CasoInvestigacao> casosComoMestre = casoInvestigacaoRepository.findByMestre_Id(id);
+        for (CasoInvestigacao caso : casosComoMestre) {
+            mensagemChat.deleteByCasoIdCaso(caso.getIdCaso());
+            sessaoAgendadaRepository.deleteByCasoIdCaso(caso.getIdCaso());
+        }
         casoInvestigacaoRepository.deleteAll(casosComoMestre);
 
         List<Personagem> personagens = personagemRepository.findByUsuarioId(id);
         for (Personagem p : personagens) {
             personagemService.delete(p.getIdPersonagem());
         }
+
+        // mensagens do usuário em casos onde ele NÃO é mestre: mantém histórico, só desvincula
+        List<MensagemChat> mensagens = mensagemChat.findByAutor_Id(id);
+        mensagens.forEach(m -> m.setAutor(null));
+        mensagemChat.saveAll(mensagens);
 
         repository.delete(usuario);
     }

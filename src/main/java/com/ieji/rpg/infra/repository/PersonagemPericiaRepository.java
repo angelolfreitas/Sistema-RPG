@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PersonagemPericiaRepository extends JpaRepository<PersonagemPericia, PersonagemPericiaId> {
 
+    void deleteByPersonagem_IdPersonagem(Integer idPersonagem);
 }
