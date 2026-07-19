@@ -12,7 +12,7 @@ import com.ieji.rpg.infra.repository.PistaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+/// Nao está sendo utilizado
 @Service
 public class PistaService extends AbstractService<Pista, Integer, PistaRequest, PistaResponse> {
 

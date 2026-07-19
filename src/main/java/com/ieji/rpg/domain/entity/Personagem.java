@@ -1,5 +1,6 @@
 package com.ieji.rpg.domain.entity;
 
+import com.ieji.rpg.domain.dto.personagem.PersonagemRequest;
 import com.ieji.rpg.domain.entity.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -100,5 +101,49 @@ public class Personagem {
 
 
 
+    public static Personagem consturctPersonagem(PersonagemRequest object, Usuario usuarioLogado ) {
+        return Personagem.builder()
+                .aparencia(object.aparencia())
+                .usuario(usuarioLogado)
+                .personalidade(object.personalidade())
+                .historico(object.historico())
+                .objetivo(object.objetivo())
+                .agilidade(object.agilidade())
+                .forca(object.forca())
+                .intelecto(object.intelecto())
+                .presenca(object.presenca())
+                .vigor(object.vigor())
+                .nex(object.nex())
+                .pvAtual(object.pvAtual())
+                .pvMaximo(object.pvMaximo())
+                .sanAtual(object.sanAtual())
+                .sanMaxima(object.sanMaxima())
+                .peAtual(object.peAtual())
+                .peMaximo(object.peMaximo())
+                .defesa(object.defesa())
+                .nomeJogador(object.nome())
+                .build();
+    }
+
+    public void setByEntity(PersonagemRequest object) {
+        this.setAparencia(object.aparencia());
+        this.setPersonalidade(object.personalidade());
+        this.setHistorico(object.historico());
+        this.setObjetivo(object.objetivo());
+        this.setAgilidade(object.agilidade());
+        this.setForca(object.forca());
+        this.setIntelecto(object.intelecto());
+        this.setPresenca(object.presenca());
+        this.setVigor(object.vigor());
+        this.setNex(object.nex());
+        this.setPvAtual(object.pvAtual());
+        this.setPvMaximo(object.pvMaximo());
+        this.setSanAtual(object.sanAtual());
+        this.setSanMaxima(object.sanMaxima());
+        this.setPeAtual(object.peAtual());
+        this.setPeMaximo(object.peMaximo());
+        this.setDefesa(object.defesa());
+        this.setNomeJogador(object.nome());
+    }
 
 }

@@ -43,7 +43,7 @@ public class InventarioService
                 .orElseThrow(() -> new EntityNotFoundException("Item não encontrado"));
 
         Inventario inventario = Inventario.builder()
-                .id(object.id()) // Define a chave composta
+                .id(object.id())
                 .personagem(personagem)
                 .item(item)
                 .quantidade(object.quantidade())
@@ -55,7 +55,6 @@ public class InventarioService
 
     @Override
     protected void updateData(Inventario entity, InventarioRequest object) {
-        // No update, geralmente só precisamos atualizar atributos simples (como a quantidade)
         entity.setQuantidade(object.quantidade());
     }
 
@@ -131,14 +130,14 @@ public class InventarioService
         public void remove(Integer idPersonagem, Integer idItem){
 
         InventarioId inventarioId = new InventarioId(idPersonagem, idItem);
-        Inventario inventario =  ((InventarioRepository)repository).findById(inventarioId)
+        Inventario inventario =  repository.findById(inventarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Entrada de inventário não encontrada"));
 
         Item item = inventario.getItem();
         item.setQuantidade(item.getQuantidade() + inventario.getQuantidade());
         itemRepository.save(item);
 
-        ((InventarioRepository)repository).deleteById(inventarioId);
+        repository.deleteById(inventarioId);
     }
 
     @Cacheable(value = "inventario", key = "#usuarioId")

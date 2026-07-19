@@ -6,7 +6,7 @@ import com.ieji.rpg.domain.entity.Pericia;
 import com.ieji.rpg.infra.repository.PericiaRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-
+/// Nao está sendo utilizado
 @Service
 public class PericiaService extends AbstractService<Pericia, Integer, PericiaRequest, PericiaResponse> {
 

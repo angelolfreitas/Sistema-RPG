@@ -11,6 +11,7 @@
     import java.util.List;
     import java.util.Map;
 
+    ///Abstracao para cruds mais simples,sem segurança
     public abstract class AbstractController<T, ID, DTO extends BaseDTO<ID>, DTI> {
 
         protected final AbstractService<T, ID, DTO, DTI> service;

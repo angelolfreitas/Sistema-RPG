@@ -8,7 +8,7 @@ import com.ieji.rpg.service.PistaService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+/// A entidade desse controller nao está sendo usada por enquanto
 @RestController
 @RequestMapping("/pista")
 @PreAuthorize("hasAuthority('user::write')")

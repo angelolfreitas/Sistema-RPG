@@ -16,6 +16,26 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+///Controller de casos de investigação. Tem:
+///  post que precisa de um CasoRequest
+///  update, que precisa do mesmo corpo para criar
+/// delete, que precisa do id
+/// sem necessidade de patch por hora
+///
+/// agendarSessao(): a partir de um AgendarSessaoRequest e de um id de sessao, agenda a sessao.
+/// Ver mais sobre agendamentos de sessao na classe service de agendamentos.
+///
+/// listarSessoesAgendaas(): mostra as sessoes agendadas do banco. aparece na tela de usuarios
+///
+/// entrarNaSessao(): a partir do token e d oemail do suaurio 9que é único no banco), agenda uma sessao para
+/// dado usuario
+///
+/// listarJogadores(): lsita os jogadores da sessao
+///
+///
+/// listarUsuariosCompletos(): lsita o objeto todo
+///
+/// cancelarSessao(): a partir de um id e de uma sessao, cancela.
 @RestController
 @RequestMapping("/casos")
 public class CasoController extends AbstractController<CasoInvestigacao, Integer, CasoRequest, CasoResponse> {
@@ -26,6 +46,27 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
         super(service);
         this.sessaoAgendadaService = sessaoAgendadaService;
     }
+    @Override
+    @PostMapping
+    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
+    public ResponseEntity<CasoResponse> create(@RequestBody CasoRequest dto) {
+        return super.create(dto);
+    }
+
+    @Override
+    @PutMapping
+    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
+    public ResponseEntity<CasoResponse> update(@RequestBody CasoRequest dto) {
+        return super.update(dto);
+    }
+    @Override
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin::write')") // Apenas admin pode deletar (como no Aetherys)
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        return super.delete(id);
+    }
+
+
 
     @PostMapping("/{id}/sessoes")
     @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
@@ -40,12 +81,6 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
         return ResponseEntity.ok(sessaoAgendadaService.listar(id));
     }
 
-    @Override
-    @PostMapping
-    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
-    public ResponseEntity<CasoResponse> create(@RequestBody CasoRequest dto) {
-        return super.create(dto);
-    }
 
     @PostMapping("/{id}/entrar")
     @PreAuthorize("hasAuthority('user::write')")
@@ -67,18 +102,6 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
         return ResponseEntity.ok(((CasoInvestigacaoService) service).listarUsuariosCompletos(id));
     }
 
-    @Override
-    @PutMapping
-    @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")
-    public ResponseEntity<CasoResponse> update(@RequestBody CasoRequest dto) {
-        return super.update(dto);
-    }
-    @Override
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('admin::write')") // Apenas admin pode deletar (como no Aetherys)
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        return super.delete(id);
-    }
 
     @DeleteMapping("/{id}/sessoes/{idSessao}")
     @PreAuthorize("hasAuthority('manager::write') or hasAuthority('admin::write')")

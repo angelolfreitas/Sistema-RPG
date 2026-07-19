@@ -13,6 +13,7 @@ import com.ieji.rpg.infra.repository.MonstroConhecidoRepository;
 import com.ieji.rpg.infra.repository.MonstroRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
 import com.ieji.rpg.service.AbstractService;
+import com.ieji.rpg.service.AutorizacaoService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -39,31 +39,33 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     private MonstroCacheService monstroCacheService;
     @Autowired
     private CasoInvestigacaoRepository casoRepository;
+    @Autowired
+    private AutorizacaoService autorizacaoService;
+
+
     @Transactional
     public void registrarConhecimentoParaTodos(Integer monstroId) {
         Monstro monstro = repository.findById(monstroId).orElse(null);
         if (monstro == null) return;
 
         List<Personagem> personagens = personagemRepository.findAll();
-
-        for (Personagem p : personagens) {
+        personagens.stream().forEach(personagem -> {
             boolean jaConhece = monstroConhecidoRepository
-                    .existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(monstroId, p.getIdPersonagem());
+                    .existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(monstroId, personagem.getIdPersonagem());
 
             if (!jaConhece) {
                 monstroConhecidoRepository.save(MonstroConhecido.builder()
                         .monstro(monstro)
-                        .personagem(p)
+                        .personagem(personagem)
                         .conhecidoEm(java.time.Instant.now())
                         .build());
             }
-        }
+        });
     }
 
 
     public List<MonstroResponse> listarParaUsuario(Usuario usuario) {
-        boolean ehMestre = usuario.getAuthorities().stream()
-                .anyMatch(a -> Objects.equals(a.getAuthority(), "admin::write") || a.getAuthority().equals("admin::write"));
+        boolean ehMestre = autorizacaoService.ehMestre(usuario);
 
         List<Monstro> todos = monstroCacheService.listarTodosCacheado();
 

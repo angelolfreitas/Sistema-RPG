@@ -15,7 +15,21 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
+/// Aprovveita as superdefinicopes e só restringe o acesso
+///
+/// O método hanldeIllegalstate trata excessoes para o logger.
+///
+/// login(): Recebe um login response e tenta logar o usuario. Pode retornar uma excessao.
+///
+/// register(): Tenta registrar e pode retornar uma excessao 9em maior parte por emails iguais).
+///
+/// adminRegister(): registro de usuaurios com o campo de role
+///
+/// alterarRole(): permite alterar a role dos usuarios. Util no chat para o mestre.
+///
+/// forgotPassword() metodefinicao de senha que utiliza o service de email.
+///
+/// rresetpassword():: tela de nova senha, após passsar pelo forgotPassword().
 @RestController
 @RequestMapping("/auth")
 public class UserController extends AbstractController<Usuario, Integer, LoginRequest, LoginResponse> {

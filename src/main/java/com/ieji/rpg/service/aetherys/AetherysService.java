@@ -11,7 +11,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
+/// findAll, create, uodate, delete: sobrepoem com redis
+///
+/// construct: construct especiico da entidade.
+///
+/// updateData(): atuaiza os campos da entidade
+///
+/// converToResponse(): converte em resposta com base na aetherys
 @Service
 public class AetherysService extends AbstractService<Aetherys, Integer, AetherysRequest, AetherysResponse> {
     AetherysService(AetherysRepository aetherysRepository) {

@@ -8,7 +8,7 @@ import com.ieji.rpg.service.PericiaService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+/// A entidade desse controller nao estásendo usada por enquanto
 @RestController
 @RequestMapping("/pericia")
 @PreAuthorize("hasAuthority('user::write')")

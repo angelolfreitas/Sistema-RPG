@@ -12,7 +12,27 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+///Service basico para crud.
+///
+/// Possui um repository com base nas generics entidade, id da entidade, dto de requisicao e de resposta (nessa ordem)
+///
+/// cinstruct: funcao que cria umd to com base numa requisicao
+///
+/// update()> atualiza uma entidade com base numa requisicao de put
+///
+/// convertToResponse: transforma uma entidade num dti
+///
+/// findAll(): retorna todos os itens do service
+///
+/// getById(): retorna um objeto com bas enum id
+///
+/// create(): post para o repository com base em uma requisicao. Regras de negocio basicas.
+///
+/// update(): atualizacao put com base nas funcoes supracitadas
+///
+/// patch: patch de campos com base no json  ena sreflections
+///
+/// delete(): funcao que apaga uma entidade com bas enum id.
 public abstract class AbstractService <T, ID, DTO extends BaseDTO<ID>, DTI>{
 
     protected JpaRepository<T, ID> repository;
@@ -26,7 +46,6 @@ public abstract class AbstractService <T, ID, DTO extends BaseDTO<ID>, DTI>{
 
     public List<DTI> findAll() {
         List<T> entities = repository.findAll();
-
         return entities.stream().map(this::convertToResponse).toList();
     }
     public DTI getById(ID id) {

@@ -8,7 +8,7 @@ import com.ieji.rpg.service.PerguntaService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+/// Essa endpoint nao está sendo utilizada por enquanto.
 @RestController
 @RequestMapping("/pergunta")
 @PreAuthorize("hasAuthority('user::write')")

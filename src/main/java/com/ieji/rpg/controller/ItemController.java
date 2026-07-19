@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+
+/// Simplesmente esrita as leis de acesso dos métodos da superclasse controller.
 @RestController
 @RequestMapping("/item")
 @PreAuthorize("hasAuthority('user::write')")

@@ -22,6 +22,11 @@ import java.util.Objects;
 public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, Integer, CasoRequest, CasoResponse> {
 
     private final UserRepository usuarioRepository;
+    @Autowired
+    private MensagemChatRepository mensagemChatRepository;
+
+    @Autowired
+    private SessaoAgendadaRepository sessaoAgendadaRepository;
 
     public CasoInvestigacaoService(CasoInvestigacaoRepository repository, UserRepository usuarioRepository) {
         super(repository);
@@ -41,7 +46,7 @@ public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, I
         Usuario usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
         Usuario mestre = usuarioRepository.findByEmail(usuarioLogado.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuário mestre não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário mestre não encontrado"));
 
         CasoInvestigacao caso = CasoInvestigacao.builder()
                 .nomeCaso(dto.nomeCaso())
@@ -74,9 +79,9 @@ public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, I
     @Transactional
     public void adicionarJogador(Integer casoId, String emailJogador) {
         CasoInvestigacao caso = repository.findById(casoId)
-                .orElseThrow(() -> new RuntimeException("Caso não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Caso não encontrado"));
         Usuario jogador = usuarioRepository.findByEmail(emailJogador)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 
         caso.getJogadores().add(jogador);
         repository.save(caso);
@@ -85,17 +90,13 @@ public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, I
     // Você pode criar um UsuarioResponse ou retornar um Map, deixei genérico
     public List<String> listarJogadores(Integer casoId) {
         CasoInvestigacao caso = repository.findById(casoId)
-                .orElseThrow(() -> new RuntimeException("Caso não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Caso não encontrado"));
 
         return caso.getJogadores().stream()
                 .map(Usuario::getUsername)
                 .toList();
     }
-    @Autowired
-    private MensagemChatRepository mensagemChatRepository;
 
-    @Autowired
-    private SessaoAgendadaRepository sessaoAgendadaRepository;
 
     @Override
     @Transactional

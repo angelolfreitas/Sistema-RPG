@@ -10,7 +10,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
+///Controller de aetherys. Tem:
+///  post que precisa de um aetherysrequest
+///  update, que precisa do mesmo corpo para criar
+/// delete, que precisa do id
+/// patch, que precisa do id e de um json com os campos
 @RestController
 @RequestMapping("/aetherys")
 @PreAuthorize("hasAuthority('user::write')")

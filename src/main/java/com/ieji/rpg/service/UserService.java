@@ -33,18 +33,14 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
     private final CasoInvestigacaoRepository casoInvestigacaoRepository;
 
-    private final SessaoAgendadaRepository sessaoAgendadaRepository;
-
     public UserService(UserRepository repository,
                        PersonagemRepository personagemRepository,
                        CasoInvestigacaoRepository casoInvestigacaoRepository,
-                       MensagemChatRepository mensagemChat,
-                       SessaoAgendadaRepository sessaoAgendadaRepository) {
+                       MensagemChatRepository mensagemChat) {
         super(repository);
         this.personagemRepository = personagemRepository;
         this.casoInvestigacaoRepository = casoInvestigacaoRepository;
         this.mensagemChat = mensagemChat;
-        this.sessaoAgendadaRepository = sessaoAgendadaRepository;
     }
 
     @Autowired
@@ -99,7 +95,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
     }
     public LoginResponse login(LoginRequest data) {
         Usuario user = ((UserRepository)repository).findByEmail(data.login())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 
         if (passwordEncoder.matches(data.password(), user.getPassword())) {
             String token = this.tokenService.generateToken(user);

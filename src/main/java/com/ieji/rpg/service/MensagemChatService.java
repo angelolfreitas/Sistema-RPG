@@ -10,6 +10,7 @@ import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
 import com.ieji.rpg.infra.repository.MensagemChatRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
 import com.ieji.rpg.infra.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -42,9 +43,9 @@ public class MensagemChatService extends AbstractService<MensagemChat, Integer, 
     @Transactional
     public MensagemChatResponse salvarMensagem(Integer casoId, Integer autorId, Integer personagemId, String conteudo) {
         CasoInvestigacao caso = casoRepository.findById(casoId)
-                .orElseThrow(() -> new RuntimeException("Caso não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Caso não encontrado"));
         Usuario autor = usuarioRepository.findById(autorId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + autorId));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com ID: " + autorId));
 
         String nomeExibicao = resolverNomeExibicao(autor, personagemId);
 

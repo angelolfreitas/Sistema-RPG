@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/// Aproveita as authorities do suer e dos métodos da superclasse.
+///
+/// Possui o método getttorico, que retorna o historico de mensagens dos casos
 @RestController
 @RequestMapping("/chat")
 @PreAuthorize("hasAuthority('user::read')")

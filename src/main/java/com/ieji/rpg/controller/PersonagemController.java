@@ -26,88 +26,42 @@ public class PersonagemController extends AbstractController<Personagem, Integer
     @Override
     @PostMapping
     public ResponseEntity<PersonagemResponse> create(@RequestBody PersonagemRequest dto) {
-        Usuario usuario = usuarioLogado();
-        PersonagemRequest seguro = new PersonagemRequest(
-                dto.id(), usuario.getId(), dto.aparencia(), dto.personalidade(),
-                dto.historico(), dto.objetivo(), dto.agilidade(), dto.forca(),
-                dto.intelecto(), dto.presenca(), dto.vigor(), dto.nex(),
-                dto.pvAtual(), dto.pvMaximo(), dto.sanAtual(), dto.sanMaxima(),
-                dto.peAtual(), dto.peMaximo(), dto.defesa(), dto.nome()
-        );
+        PersonagemRequest seguro = PersonagemRequest.constructByEntity(dto, usuarioLogado().getId());
         return service.create(seguro)
                 .map(response -> ResponseEntity.status(201).body(response))
                 .orElseGet(() -> ResponseEntity.status(409).build());
     }
 
-    private Usuario usuarioLogado() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (Usuario) authentication.getPrincipal();
-    }
-
-    private boolean ehMestre(Usuario usuario) {
-        return usuario.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("manager::write") || a.getAuthority().equals("admin::write"));
-    }
-
-    private boolean ehDono(PersonagemResponse personagem, Usuario usuario) {
-        if (personagem.usuarioId() == null || usuario.getId() == null) {
-            return false;
-        }
-        return personagem.usuarioId().intValue() == usuario.getId().intValue();
-    }
-
     @Override
     @GetMapping
     public ResponseEntity<List<PersonagemResponse>> findAll() {
-        Usuario usuario = usuarioLogado();
+        return ResponseEntity.ok(personagemService().listarParaUsuario(usuarioLogado()));
+    }
 
-        if (ehMestre(usuario)) {
-            return ResponseEntity.ok(service.findAll());
-        }
-        return ResponseEntity.ok(((PersonagemService) service).findByUsuarioLogado(usuario.getId()));
+    @GetMapping("/meu")
+    public ResponseEntity<List<PersonagemResponse>> meusPersonagens() {
+        return ResponseEntity.ok(personagemService().findByUsuarioLogado(usuarioLogado().getId()));
     }
 
     @Override
     @GetMapping("/{id}")
     public ResponseEntity<PersonagemResponse> getById(@PathVariable Integer id) {
-        Usuario usuario = usuarioLogado();
-        PersonagemResponse personagem = service.getById(id);
-
-        if (!ehDono(personagem, usuario) && !ehMestre(usuario)) {
-            return ResponseEntity.status(403).build();
-        }
-        return ResponseEntity.ok(personagem);
+        return ResponseEntity.ok(personagemService().getComAcesso(id, usuarioLogado()));
     }
 
     @Override
     @PutMapping
     public ResponseEntity<PersonagemResponse> update(@RequestBody PersonagemRequest dto) {
-        Usuario usuario = usuarioLogado();
-
         if (dto.id() == null) {
             return ResponseEntity.badRequest().build();
         }
-
-        PersonagemResponse existente = service.getById(dto.id());
-
-        if (!ehDono(existente, usuario) && !ehMestre(usuario)) {
-            return ResponseEntity.status(403).build();
-        }
-
-        return ResponseEntity.ok(service.update(dto));
+        return ResponseEntity.ok(personagemService().updateComAcesso(dto, usuarioLogado()));
     }
 
     @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        Usuario usuario = usuarioLogado();
-        PersonagemResponse personagem = service.getById(id);
-
-        if (!ehDono(personagem, usuario) && !ehMestre(usuario)) {
-            return ResponseEntity.status(403).build();
-        }
-
-        service.delete(id);
+        personagemService().deleteComAcesso(id, usuarioLogado());
         return ResponseEntity.noContent().build();
     }
 
@@ -117,20 +71,15 @@ public class PersonagemController extends AbstractController<Personagem, Integer
             @PathVariable Integer id,
             @RequestBody Map<String, Object> fields
     ) {
-        Usuario usuario = usuarioLogado();
-        PersonagemResponse personagem = service.getById(id);
-
-        if (!ehDono(personagem, usuario) && !ehMestre(usuario)) {
-            return ResponseEntity.status(403).build();
-        }
-
-        service.patchEntity(id, fields);
-        return ResponseEntity.ok(service.getById(id));
+        return ResponseEntity.ok(personagemService().patchComAcesso(id, fields, usuarioLogado()));
     }
 
-    @GetMapping("/meu")
-    public ResponseEntity<List<PersonagemResponse>> meusPersonagens() {
-        Usuario usuario = usuarioLogado();
-        return ResponseEntity.ok(((PersonagemService) service).findByUsuarioLogado(usuario.getId()));
+    private PersonagemService personagemService() {
+        return (PersonagemService) service;
+    }
+
+    private Usuario usuarioLogado() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (Usuario) authentication.getPrincipal();
     }
 }

@@ -9,7 +9,7 @@ import com.ieji.rpg.service.PersonagemPericiaService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+/// A entidade desse controller nao está sendo usada por enquanto
 @RestController
 @RequestMapping("/personagem-p")
 @PreAuthorize("hasAuthority('user::write')")

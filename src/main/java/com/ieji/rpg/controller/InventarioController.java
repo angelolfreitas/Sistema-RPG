@@ -3,12 +3,11 @@ package com.ieji.rpg.controller;
 import com.ieji.rpg.domain.Exception.EstoqueInsuficienteException;
 import com.ieji.rpg.domain.dto.inventario.InventarioRequest;
 import com.ieji.rpg.domain.dto.inventario.InventarioResponse;
-import com.ieji.rpg.domain.dto.personagem.PersonagemResponse;
 import com.ieji.rpg.domain.entity.Inventario;
 import com.ieji.rpg.domain.entity.InventarioId;
 import com.ieji.rpg.domain.entity.Usuario;
-import com.ieji.rpg.service.inventario.InventarioService;
 import com.ieji.rpg.service.PersonagemService;
+import com.ieji.rpg.service.inventario.InventarioService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,8 +19,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
+/// meuInventario(): lista o inventario do personagem logado.
+/// findAll(): restrito a mestre/admin.
+/// create()/remover()/alterarQuantidade(): a checagem de posse do personagem
+/// (dono ou mestre) é delegada a PersonagemService.getComAcesso, a mesma
+/// regra usada em PersonagemController — se negar, lança AccessDeniedException
+/// e o Spring Security já devolve 403 sozinho.
 @RestController
 @RequestMapping("/inventario")
 @PreAuthorize("hasAuthority('user::write')")
@@ -34,20 +40,9 @@ public class InventarioController extends AbstractController<Inventario, Inventa
         super(service);
     }
 
-    private boolean ehMestre(Usuario usuario) {
-        return usuario.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("manager::write") || a.getAuthority().equals("admin::write"));
-    }
-
-    private boolean podeMexerNoPersonagem(Integer idPersonagem, Usuario usuario) {
-        if (ehMestre(usuario)) return true;
-        PersonagemResponse personagem = personagemService.getById(idPersonagem);
-        return personagem.usuarioId() != null && personagem.usuarioId().equals(usuario.getId());
-    }
-
     @GetMapping("/meu")
     public ResponseEntity<List<InventarioResponse>> meuInventario(@AuthenticationPrincipal Usuario usuario) {
-        return ResponseEntity.ok(((InventarioService) service).listarPorUsuario(usuario.getId()));
+        return ResponseEntity.ok(inventarioService().listarPorUsuario(usuario.getId()));
     }
 
     @Override
@@ -56,60 +51,61 @@ public class InventarioController extends AbstractController<Inventario, Inventa
     public ResponseEntity<List<InventarioResponse>> findAll() {
         return super.findAll();
     }
+
     @Override
     @PostMapping
-    public ResponseEntity<InventarioResponse> create(@RequestBody InventarioRequest inventarioRequest) {
-        Usuario usuarioLogado = (Usuario) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        try {
-            Integer idPersonagem = inventarioRequest.personagemId();
+    public ResponseEntity<InventarioResponse> create(@RequestBody InventarioRequest dto) {
+        Integer idPersonagem = dto.personagemId();
+        personagemService.getComAcesso(idPersonagem, usuarioLogado());
 
-            if (!podeMexerNoPersonagem(idPersonagem, usuarioLogado)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-
-            Inventario inventario = ((InventarioService) service).add(
-                    idPersonagem, inventarioRequest.getId().getIdItem(), inventarioRequest.quantidade()
-            ).orElseThrow(() -> new EntityNotFoundException("nao achou"));
-            return ResponseEntity.ok(InventarioResponse.constructByEntity(inventario));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new InventarioResponse(null, null, null, null));
-        } catch (EstoqueInsuficienteException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new InventarioResponse(null, null, null, null));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new InventarioResponse(null, null, null, null));
-        }
+        Inventario inventario = inventarioService()
+                .add(idPersonagem, dto.getId().getIdItem(), dto.quantidade())
+                .orElseThrow(() -> new EntityNotFoundException("Item não encontrado"));
+        return ResponseEntity.ok(InventarioResponse.constructByEntity(inventario));
     }
 
     @DeleteMapping("/{idPersonagem}/{idItem}")
-    public ResponseEntity<?> remover(@PathVariable Integer idPersonagem, @PathVariable Integer idItem,
-                                     @AuthenticationPrincipal Usuario usuarioLogado) {
-        if (!podeMexerNoPersonagem(idPersonagem, usuarioLogado)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        ((InventarioService) service).remove(idPersonagem, idItem);
+    public ResponseEntity<Void> remover(@PathVariable Integer idPersonagem, @PathVariable Integer idItem,
+                                        @AuthenticationPrincipal Usuario usuario) {
+        personagemService.getComAcesso(idPersonagem, usuario);
+        inventarioService().remove(idPersonagem, idItem);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{idPersonagem}/{idItem}")
-    public ResponseEntity<?> alterarQuantidade(
+    public ResponseEntity<InventarioResponse> alterarQuantidade(
             @PathVariable Integer idPersonagem,
             @PathVariable Integer idItem,
             @RequestParam Integer delta,
-            @AuthenticationPrincipal Usuario usuarioLogado) {
-        if (!podeMexerNoPersonagem(idPersonagem, usuarioLogado)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        try {
-            Optional<Inventario> resultado = ((InventarioService) service).alterarQuantidade(idPersonagem, idItem, delta);
-            if (resultado.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.ok(InventarioResponse.constructByEntity(resultado.get()));
-        } catch (EstoqueInsuficienteException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("conflict", e.getMessage()));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("not found", e.getMessage()));
-        }
+            @AuthenticationPrincipal Usuario usuario) {
+        personagemService.getComAcesso(idPersonagem, usuario);
+
+        Optional<Inventario> resultado = inventarioService().alterarQuantidade(idPersonagem, idItem, delta);
+        return resultado
+                .map(inventario -> ResponseEntity.ok(InventarioResponse.constructByEntity(inventario)))
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @ExceptionHandler(EstoqueInsuficienteException.class)
+    public ResponseEntity<Map<String, String>> tratarEstoqueInsuficiente(EstoqueInsuficienteException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage()));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, String>> tratarNaoEncontrado(EntityNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> tratarArgumentoInvalido(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+    }
+
+    private InventarioService inventarioService() {
+        return (InventarioService) service;
+    }
+
+    private Usuario usuarioLogado() {
+        return (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 }
