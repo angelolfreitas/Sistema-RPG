@@ -13,7 +13,47 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-
+/// delete(): sobrescreve o delete() padrão com limpeza em cascata manual.
+/// Antes de apagar o personagem, remove seus registros de inventário,
+/// suas perícias (personagemPericia) e os monstros conhecidos por ele.
+/// Também limpa a coleção de aetherys associada (se o personagem existir),
+/// para evitar problemas de referência, e só então chama o delete() genérico
+/// do AbstractService para remover o personagem em si.
+///
+/// construct(): cria um novo personagem a partir do DTO.
+/// Busca o usuário dono do personagem pelo id informado (lança exceção se
+/// não existir), monta a entidade Personagem associada a esse usuário,
+/// salva no repositório e retorna a resposta convertida.
+///
+/// updateData(): delega a atualização dos campos do personagem para o
+/// próprio método setByEntity() da entidade, repassando o DTO recebido.
+///
+/// convertToResponse(): converte a entidade Personagem para o DTO de resposta.
+///
+/// findByUsuarioLogado(): lista todos os personagens pertencentes a um usuário,
+/// já convertidos para o DTO de resposta.
+///
+/// ehMestre(): delega para o AutorizacaoService a verificação se o usuário
+/// possui papel de mestre.
+///
+/// ehDono(): verifica se o usuário informado é o dono do personagem,
+/// comparando os ids (com proteção contra nulos).
+///
+/// getComAcesso(): busca o personagem pelo id e valida a permissão de acesso:
+/// só permite se o usuário for o dono do personagem ou for mestre; caso
+/// contrário, lança AccessDeniedException (convertida pelo Spring Security em 403).
+///
+/// listarParaUsuario(): se o usuário for mestre, retorna todos os personagens
+/// do sistema; caso contrário, retorna apenas os personagens do próprio usuário.
+///
+/// updateComAcesso(): valida o acesso do usuário ao personagem (via getComAcesso())
+/// antes de delegar a atualização para o update() padrão.
+///
+/// deleteComAcesso(): valida o acesso do usuário ao personagem antes de
+/// delegar a exclusão para o delete() (com toda a limpeza em cascata).
+///
+/// patchComAcesso(): valida o acesso do usuário ao personagem, aplica o patch
+/// parcial dos campos informados e retorna o personagem atualizado.
 @Service
 public class PersonagemService extends AbstractService<Personagem, Integer, PersonagemRequest, PersonagemResponse> {
 

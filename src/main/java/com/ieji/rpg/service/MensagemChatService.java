@@ -19,14 +19,43 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
+/// salvarMensagem(): monta e persiste uma nova mensagem de chat.
+/// Busca o caso pelo id (lança exceção se não existir).
+/// Busca o autor (usuário) pelo id (lança exceção se não existir).
+/// Resolve o nome de exibição do autor via resolverNomeExibicao().
+/// Constrói a entidade MensagemChat com caso, autor, conteúdo, data/hora atual
+/// e nome de exibição, salva no repositório e retorna a resposta convertida.
+///
+/// resolverNomeExibicao(): define qual nome aparece no chat.
+/// Se um personagemId foi informado, procura esse personagem garantindo que
+/// pertence ao autor (via filter); se encontrado, retorna "nomeJogador - username".
+/// Caso contrário (ou se o personagem não pertence ao autor), busca o último
+/// personagem cadastrado pelo usuário (ordenado por id desc) e monta o mesmo
+/// formato de nome; se o usuário não tiver nenhum personagem, retorna apenas o username.
+///
+/// create(): sobrescreve o create() genérico do AbstractService apenas para
+/// aplicar a anotação @Transactional; delega toda a lógica para o super.create().
+///
+/// construct(): define quem é o autor da mensagem a partir do contexto de segurança.
+/// Se houver um usuário autenticado (não anônimo) no SecurityContextHolder, usa o id
+/// dele como autor. Caso contrário, tenta usar o authorId vindo do próprio DTO
+/// (fluxo alternativo, ex.: chamada interna/sistema). Se nenhum dos dois estiver
+/// disponível, lança exceção pois não é possível identificar o autor.
+///
+/// updateData(): atualiza apenas o conteúdo da mensagem, e somente se o novo
+/// conteúdo enviado no DTO não for nulo.
+///
+/// convertToResponse(): converte a entidade MensagemChat para o DTO de resposta.
+///
+/// listarHistoricoDoCaso(): retorna todas as mensagens de um caso específico,
+/// ordenadas por data de envio (ascendente), já convertidas para o DTO de resposta.
 @Service
 public class MensagemChatService extends AbstractService<MensagemChat, Integer, MensagemChatRequest, MensagemChatResponse> {
 
     private final CasoInvestigacaoRepository casoRepository;
     private final UserRepository usuarioRepository;
 
-    private final PersonagemRepository personagemRepository; // injetar no construtor
+    private final PersonagemRepository personagemRepository;
 
 
 
@@ -63,15 +92,12 @@ public class MensagemChatService extends AbstractService<MensagemChat, Integer, 
 
     private String resolverNomeExibicao(Usuario autor, Integer personagemId) {
         if (personagemId != null) {
-            // Só usa o personagem indicado se ele realmente pertencer ao autor da mensagem —
-            // evita que alguém informe o id de outro jogador e "assine" com o personagem errado.
             Optional<Personagem> personagemEscolhido = personagemRepository.findById(personagemId)
                     .filter(p -> p.getUsuario().getId().equals(autor.getId()));
             if (personagemEscolhido.isPresent()) {
                 return personagemEscolhido.get().getNomeJogador() + " - " + autor.getUsername();
             }
         }
-        // Fallback: nenhum personagemId válido veio do front (ex: usuário sem personagem selecionado ainda)
         return personagemRepository.findFirstByUsuarioIdOrderByIdPersonagemDesc(autor.getId())
                 .map(p -> p.getNomeJogador() + " - " + autor.getUsername())
                 .orElse(autor.getUsername());
@@ -79,21 +105,17 @@ public class MensagemChatService extends AbstractService<MensagemChat, Integer, 
     @Override
     @Transactional
     public Optional<MensagemChatResponse> create(MensagemChatRequest dto) {
-        // Ao anotar o método público que inicia o fluxo REST, a transação é aberta pelo Proxy.
-        // Qualquer self-invocation interna a partir daqui estará coberta pela transação principal.
         return super.create(dto);
     }
 
     @Override
     protected MensagemChatResponse construct(MensagemChatRequest dto) {
-        // Apenas tenta buscar o usuário logado se for uma chamada REST (onde o SecurityContext existe)
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             Usuario usuarioLogado = (Usuario) auth.getPrincipal();
             return salvarMensagem(dto.idCaso(), usuarioLogado.getId(), dto.personagemId(), dto.conteudo());
         }
 
-        // Se não houver contexto (WebSocket), tentamos usar o autorId vindo do DTO
         if (dto.authorId() != null) {
             return salvarMensagem(dto.idCaso(), dto.authorId(), dto.personagemId(), dto.conteudo());
         }

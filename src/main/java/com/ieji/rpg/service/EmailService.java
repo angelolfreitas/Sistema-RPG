@@ -9,7 +9,27 @@ import org.springframework.web.client.RestClient;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
-
+/// Serviço que reocrre ao googole cloud services para mandar emails.
+///
+/// Temos os clientes da api para requerir ao google, acessíveis pelas secrets geradas na aplicação do google.
+///
+/// O sender é o email institucional que será usado para enviar as mensagens.
+///
+/// obterAccessToken(): obtém a permissao do google através das credenciais que injetamos pelas variáveis de ambiente
+///
+/// montarMensagemBase64(): precisa de um destinatário, um assunto e um corpo.
+///1: codifica o assunto do texto com base em caracteres em português
+/// tradicionalmente, esse campo de email só suporta caracteres ASCII, então essa etapa converte o texto para isso
+/// 2: constrói o email cru. Como se estivessemos digitando esses campos em ordem de cima para baixo no aplicativo do gmail
+///
+/// 3: por fim, decodifica tudo para o formato de leitura do gmail.
+///
+/// enviar(): função assincrona, pois o envio de emails nao pode travar o estado da api.
+///
+/// requere o token para liberar o envio, monta o corpo cru do email.
+/// Post para a api do gmail: manda um json formatado requisitando um novo email com base no sender informado
+/// para a API e fornece o token para permitir o envio. Se nãio der para enviar o email, captura a exceção e exibe
+/// na tela (montar a própria depois)
 @Service
 public class EmailService {
 

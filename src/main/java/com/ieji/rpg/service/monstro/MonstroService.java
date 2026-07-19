@@ -23,7 +23,33 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+/// delete(): regra complexa
+/// delete: procura os casos em que o mosntro está cadastrado
+/// para cada caso em que o msontro está, retira o msontro. Salva no banco o caso.
+///
+/// deleta o mosntro do banco de registro de conhecimentos.
+///
+/// Deleta o mosntro com base na abstração do service, agora sem risco de cascata.
+///
+/// registrarConhecimentoParaTodos():
+/// Procura o id requerido. Se nao char nada, finaliza a função.
+/// Acha todos os personagens do repositório (talvez devesse ser do caso. Fazer uma consulta SQL em caso que faça isso.)
+/// Para cada personagem encontrado na última busca, registra um novo conhecimento se não conhecer o monstor. Persiste
+/// no front a existencia do monstro.
+///
+/// aplicatDano(): procura o mosntro, se existir:
+/// Verifica se o monstor terá 0 de vida após receber o dano, faz um corte se a vida for menor que 0 após receber.
+/// muda os pontos de via do mosntro e o salva no banco.
+///
+/// listarParaUsuario(): verifica s eo usuário em questão é mestre 9talves pudesse ser pelo campo, verificar depois)
+/// recupera todos os mosntros do banco.
+/// para cada mosntro:
+///  monta uma resposta de monstro
+///  verifiac se para o usuário o mosntro é conhecido
+///  dependendo do progresso e da sasutoridades do usuário, msotra o montro com dados totais (mestre), parciais (usuario
+/// que viu o monstro) ou ocultos (usuário que não viu o mosntro).
+///
+/// As demais funções sãoanálogas às anteriormente explicadas (documentar em breve).
 @Service
 public class MonstroService extends AbstractService<Monstro, Integer, MonstroRequest, MonstroResponse> {
 
@@ -42,6 +68,20 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     @Autowired
     private AutorizacaoService autorizacaoService;
 
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        List<CasoInvestigacao> casosEmBatalha = casoRepository.findByMonstroAtual_IdMonstro(id);
+        for (CasoInvestigacao caso : casosEmBatalha) {
+            caso.setMonstroAtual(null);
+            casoRepository.save(caso);
+        }
+
+
+        monstroConhecidoRepository.deleteByMonstro_IdMonstro(id);
+
+        super.delete(id);
+    }
 
     @Transactional
     public void registrarConhecimentoParaTodos(Integer monstroId) {
@@ -49,7 +89,7 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
         if (monstro == null) return;
 
         List<Personagem> personagens = personagemRepository.findAll();
-        personagens.stream().forEach(personagem -> {
+        personagens.forEach(personagem -> {
             boolean jaConhece = monstroConhecidoRepository
                     .existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(monstroId, personagem.getIdPersonagem());
 
@@ -64,7 +104,19 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     }
 
 
+    @CacheEvict(value = "monstros", allEntries = true)
+    @Transactional
+    public MonstroResponse aplicarDano(Integer id, Integer dano) {
+        Monstro monstro = repository.findById(id)//fazer excecao
+                .orElseThrow(() -> new EntityNotFoundException("Monstro não encontrado"));
+        int novoPv = Math.max(0, monstro.getPv() - dano);
+        monstro.setPv(novoPv);
+        repository.save(monstro);
+        return MonstroResponse.constructByEntity(monstro);
+    }
+
     public List<MonstroResponse> listarParaUsuario(Usuario usuario) {
+
         boolean ehMestre = autorizacaoService.ehMestre(usuario);
 
         List<Monstro> todos = monstroCacheService.listarTodosCacheado();
@@ -88,9 +140,14 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
     }
     @CacheEvict(value = "monstros", allEntries = true)
     @Transactional
+    public MonstroResponse marcarEmBatalha(Integer id, boolean emBatalha) {
+        this.patchEntity(id, Map.of("emBatalha", emBatalha));
+        return getById(id);
+    }
+    @CacheEvict(value = "monstros", allEntries = true)
+    @Transactional
     public MonstroResponse alterarVida(Integer id, Integer novoPv) {
         this.patchEntity(id, Map.of("pv", novoPv));
-
         return getById(id);
     }
 
@@ -130,37 +187,8 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
         return MonstroResponse.constructByEntity(entity);
     }
 
-    @CacheEvict(value = "monstros", allEntries = true)
-    @Transactional
-    public MonstroResponse marcarEmBatalha(Integer id, boolean emBatalha) {
-        this.patchEntity(id, Map.of("emBatalha", emBatalha));
-        return getById(id);
-    }
-    @CacheEvict(value = "monstros", allEntries = true)
-    @Transactional
-    public MonstroResponse aplicarDano(Integer id, Integer dano) {
-        Monstro monstro = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Monstro não encontrado"));
-        int novoPv = Math.max(0, monstro.getPv() - dano);
-        monstro.setPv(novoPv);
-        repository.save(monstro);
-        return MonstroResponse.constructByEntity(monstro);
-    }
-
-    @Override
-    @Transactional
-    public void delete(Integer id) {
-        List<CasoInvestigacao> casosEmBatalha = casoRepository.findByMonstroAtual_IdMonstro(id);
-        for (CasoInvestigacao caso : casosEmBatalha) {
-            caso.setMonstroAtual(null);
-            casoRepository.save(caso);
-        }
 
 
-        monstroConhecidoRepository.deleteByMonstro_IdMonstro(id);
-
-        super.delete(id);
-    }
     @CacheEvict(value = "monstros", allEntries = true)
     @Override
     public Optional<MonstroResponse> create(MonstroRequest dto) {

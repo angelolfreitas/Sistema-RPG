@@ -19,7 +19,60 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
+/// Service de inventario.
+///
+///
+/// O construct() é responsável por salvar no repository.
+/// Ele acha o id do personagem selecionado pelo jogador. Acha os itens selecionados.
+/// Constrói um novo objeto de inventário e associa o item ao personagem.
+///
+///
+/// updateData(): recorre à função setQuantidade. atualiza a quantidade de itens.
+///
+/// alterarQuantidade(): regra de negocio complexa para itens que já estão no inventário:
+///
+/// Recupera a chave compsota inventario id, que tem o id do personagem e o id do item (varios personagems varios itens)
+///
+/// Encontra a isntância de inventário ja associada ao personagem (pois vamos alterar uma já existente)
+///
+/// Recupera o item guardado no inventário.
+///
+/// Se a quandiade for de acréscimo e houverem itens no estoque:
+///  subtrai a quantidade de itens disponíveis e soma eles ao personagem
+/// Se não, se a quantidade for d descréscimo e a quantiade disponível no usuário for maior que a quantidade subtraída:
+///  subtrai do personagem e soma aos itens
+///  Se a quantidade nova for menor que 0, deleta ele do usuário automaticamente
+/// Se não, não faz nada (pode lançar uma exceção personalizada aqui)
+///
+/// Por fim, salva o novo estado no banco e retorna.
+///
+/// add(): novo item no inventário, regra complexa:
+///
+/// se quaisquer das requsicieos necessárais para criar novo inventário sao invállidas, nova exceção (criar uma específica)
+/// Procura o item do repositório co lock (para evitar concorrencia)
+/// Procura o personagem requisitado
+///
+/// remove o item do estoque
+/// salva a nova quantidade d eitens
+///
+/// cria uma nova chave composta, declara uma variavel de inventario.
+/// Se o inventario apra este item já existe: Simplesmetne altera  quantidade
+///
+/// Se não, cria um novo invetnário come ssa chave composta, o id do personagem, o id do item e a quantidade
+///
+/// Por fim, salva o inventário no repositório
+///
+/// remove(): regra complexa
+/// Procura a chave composta. Procura o inventário (se nao existir, lança exceção - fazer )
+///
+/// Pega o item encapsulado pelo inventário
+/// muda a quantidade do item no estoque, adicionando toda a quantidade do personagem
+///
+/// salva o item no banco
+///
+/// deleta o inventário do personagem.
+///
+/// listarPorUsuario(): lista os itens de cad ausuário de forma dinâmica
 @Service
 public class InventarioService
         extends AbstractService<Inventario, InventarioId, InventarioRequest, InventarioResponse> {
@@ -32,6 +85,29 @@ public class InventarioService
 
     public InventarioService(InventarioRepository repository) {
         super(repository);
+    }
+    @Transactional
+    @CacheEvict(value = {"inventario", "itens"}, allEntries = true)
+    public void remove(Integer idPersonagem, Integer idItem){
+
+        InventarioId inventarioId = new InventarioId(idPersonagem, idItem);
+        Inventario inventario =  repository.findById(inventarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Entrada de inventário não encontrada"));
+
+        Item item = inventario.getItem();
+        item.setQuantidade(item.getQuantidade() + inventario.getQuantidade());
+        itemRepository.save(item);
+
+        repository.deleteById(inventarioId);
+    }
+
+    @Cacheable(value = "inventario", key = "#usuarioId")
+    public List<InventarioResponse> listarPorUsuario(Integer usuarioId) {
+        return ((InventarioRepository) repository)
+                .findByPersonagem_Usuario_Id(usuarioId)
+                .stream()
+                .map(InventarioResponse::constructByEntity)
+                .toList();
     }
 
     @Override
@@ -125,27 +201,5 @@ public class InventarioService
         return Optional.of(repository.save(inventario));
     }
 
-    @Transactional
-    @CacheEvict(value = {"inventario", "itens"}, allEntries = true)
-        public void remove(Integer idPersonagem, Integer idItem){
 
-        InventarioId inventarioId = new InventarioId(idPersonagem, idItem);
-        Inventario inventario =  repository.findById(inventarioId)
-                .orElseThrow(() -> new EntityNotFoundException("Entrada de inventário não encontrada"));
-
-        Item item = inventario.getItem();
-        item.setQuantidade(item.getQuantidade() + inventario.getQuantidade());
-        itemRepository.save(item);
-
-        repository.deleteById(inventarioId);
-    }
-
-    @Cacheable(value = "inventario", key = "#usuarioId")
-    public List<InventarioResponse> listarPorUsuario(Integer usuarioId) {
-        return ((InventarioRepository) repository)
-                .findByPersonagem_Usuario_Id(usuarioId)
-                .stream()
-                .map(InventarioResponse::constructByEntity)
-                .toList();
-    }
 }

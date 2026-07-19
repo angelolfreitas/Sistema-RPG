@@ -20,7 +20,38 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
+/// solicitarResetSenha(): inicia o fluxo de redefinição de senha.
+/// Busca o usuário pelo e-mail; se existir, gera um token único (UUID),
+/// salva um PasswordResetToken com validade de 1 hora e envia um e-mail
+/// ao usuário com o link de redefinição (montado com a URL do front-end).
+///
+/// resetarSenha(): efetiva a troca de senha a partir de um token.
+/// Busca o token garantindo que não foi usado e que ainda não expirou
+/// (lança exceção caso contrário), atualiza a senha do usuário associado
+/// (já criptografada) e marca o token como usado.
+///
+/// login(): autentica um usuário pelo e-mail/login e senha.
+/// Busca o usuário pelo e-mail (lança exceção se não existir); se a senha
+/// informada bater com a senha criptografada salva, gera um token JWT e
+/// retorna o LoginResponse; caso contrário, lança exceção de senha inválida (fazer depois).
+///
+/// delete(): sobrescreve o delete() padrão com toda a limpeza necessária
+/// antes de remover o usuário. Remove os tokens de reset de senha do usuário.
+/// Percorre todos os casos e remove o usuário da lista de jogadores onde
+/// ele estiver presente. Para os casos em que o usuário é mestre, tenta
+/// encontrar um substituto (via encontrarSubstitutoMestre()); se não
+/// encontrar nenhum admin disponível, lança exceção impedindo a exclusão (fazer).
+/// Se encontrar, transfere o caso para o substituto e remove o usuário
+/// também da lista de jogadores desse caso. Em seguida, apaga (via
+/// personagemService.delete()) todos os personagens do usuário. As mensagens
+/// de chat do usuário são preservadas, apenas desvinculadas (autor = null).
+/// Por fim, remove o usuário do repositório.
+///
+/// encontrarSubstitutoMestre(): procura um novo mestre para assumir um caso.
+/// Prioriza um ADMIN que já esteja na sessão como jogador; se não houver,
+/// busca qualquer outro ADMIN cadastrado no sistema (excluindo o que
+/// está sendo removido). Retorna null se nenhum substituto for encontrado.
+///
 @Service
 public class UserService extends AbstractService <Usuario, Integer, LoginRequest, LoginResponse>{
     @Autowired
@@ -169,19 +200,18 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
         tokenRepository.deleteByUsuario_Id(id);
 
         List<CasoInvestigacao> todosCasos = casoInvestigacaoRepository.findAll();
-        for (CasoInvestigacao caso : todosCasos) {
+        todosCasos.forEach(caso -> {
             if (caso.getJogadores().contains(usuario)) {
                 caso.getJogadores().remove(usuario);
                 casoInvestigacaoRepository.save(caso);
             }
-        }
+        });
 
-        // casos onde o usuário é mestre: transfere para outro admin em vez de apagar
         List<CasoInvestigacao> casosComoMestre = casoInvestigacaoRepository.findByMestre_Id(id);
-        for (CasoInvestigacao caso : casosComoMestre) {
+        casosComoMestre.forEach(caso -> {
             Usuario substituto = encontrarSubstitutoMestre(caso, id);
 
-            if (substituto == null) {
+            if (substituto == null) {// fazer excecao depois
                 throw new IllegalStateException(
                         "Não é possível excluir este usuário: ele é mestre da sessão \"" + caso.getNomeCaso() +
                                 "\" e não há outro administrador cadastrado para assumi-la. " +
@@ -190,16 +220,15 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
             }
 
             caso.setMestre(substituto);
-            caso.getJogadores().remove(usuario); // se o mestre também estava como jogador, tira
+            caso.getJogadores().remove(usuario);
             casoInvestigacaoRepository.save(caso);
-        }
+        });
 
         List<Personagem> personagens = personagemRepository.findByUsuarioId(id);
-        for (Personagem p : personagens) {
+        personagens.forEach(p -> {
             personagemService.delete(p.getIdPersonagem());
-        }
+        });
 
-        // mensagens do usuário: mantém histórico, só desvincula
         List<MensagemChat> mensagens = mensagemChat.findByAutor_Id(id);
         mensagens.forEach(m -> m.setAutor(null));
         mensagemChat.saveAll(mensagens);
@@ -208,7 +237,6 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
     }
 
     private Usuario encontrarSubstitutoMestre(CasoInvestigacao caso, Integer idExcluido) {
-        // 1ª prioridade: outro ADMIN que já está na sessão como jogador
         Usuario candidatoNaSessao = caso.getJogadores().stream()
                 .filter(u -> !u.getId().equals(idExcluido) && u.getRole() == Role.ADMIN)
                 .findFirst()
@@ -216,7 +244,6 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
         if (candidatoNaSessao != null) return candidatoNaSessao;
 
-        // 2ª prioridade: qualquer outro ADMIN do sistema
         return ((UserRepository) repository).findFirstByRoleAndIdNot(Role.ADMIN, idExcluido).orElse(null);
     }
 

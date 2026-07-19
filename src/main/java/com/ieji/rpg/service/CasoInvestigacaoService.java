@@ -17,7 +17,32 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-
+///
+/// listarUsuariosCompletos(): lista todos os usuários dentro de uma investigação pelo dto
+///
+/// construct(): Recupera o usuário lgoado pelo principal (token)
+/// recupera o usuário mestre da sessão
+///
+/// Cria um novo caso de investigação. Considerando que é somente mestre, passa este usuário como mestre da sessão e
+/// salva no inventário. COnverte para DTO.
+///
+/// adicionarJogador(): Recupera o caso pelo id e o jogador (agente) pelo email. Adiciona o jogador à lista de jogadores.
+/// Salva o caso no repositório
+///
+/// listarJogadores(): procura o caso pelo id, s enao achar, lança exceção.
+/// Cria uma resposta com base nas entidades achadas por mapeamento de streams (só msotra os nomes)
+///
+/// delete(): Regra complexa
+///
+/// Procura o caso. Se não achar, lança exceção (criar depois)
+///
+/// deleta todas as mensagens do caso de investigação.
+/// deleta todas as sessões agendadas.
+///  limpa os jgoadores associados ao caso a ser deletado
+/// salva o caso no banco
+///
+///
+///
 @Service
 public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, Integer, CasoRequest, CasoResponse> {
 
