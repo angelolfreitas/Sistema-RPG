@@ -7,7 +7,25 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+/// tabela de casos de investigação.
+/// Possui o id do caso
+/// o nomeCaso (até 150 caracteres)
+/// o resumo (texto livre)
+/// o objetivo (texto livre)
+/// a urgencia (até 50 caracteres)
+/// o rodadasRestantes
+/// o status (ABERTA, EM_ANDAMENTO ou ENCERRADA; default ABERTA)
+/// o mestre responsável pelo caso (relação N:1 com Usuario, lazy)
+/// o monstroAtual em batalha, usado na fase de combate (relação N:1 com
+/// Monstro, opcional)
+/// os jogadores participantes (relação N:N com Usuario, via tabela caso_jogador)
+/// as perguntas associadas (relação 1:N com Pergunta, cascade total e
+/// orphanRemoval, ou seja, apagar o caso apaga suas perguntas)
+/// as pistas associadas (relação 1:N com Pista, cascade total e
+/// orphanRemoval, ou seja, apagar o caso apaga suas pistas)
+///
+/// StatusCaso: enum interno com os possíveis estados do caso
+/// (ABERTA, EM_ANDAMENTO, ENCERRADA).
 @Entity
 @Table(name = "caso_investigacao")
 @Getter

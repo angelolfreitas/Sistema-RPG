@@ -2,7 +2,12 @@ package com.ieji.rpg.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+/// tabela de pistas de um caso de investigação.
+/// Possui o id da pista
+/// o caso ao qual pertence (relação N:1 com CasoInvestigacao, lazy)
+/// a descricao (texto livre)
+/// o tipo (categoria da pista, até 50 caracteres)
+/// a descoberta (flag indicando se já foi descoberta pelos jogadores, default false)
 @Entity
 @Table(name = "pista")
 @Getter

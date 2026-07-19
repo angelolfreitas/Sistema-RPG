@@ -1,7 +1,11 @@
 package com.ieji.rpg.domain.dto.pericia;
 
 import com.ieji.rpg.domain.dto.BaseDTO;
-
+/// DTO de request.
+/// precisa de um:
+/// Integer: id
+/// String: nome
+/// String: atributoBase
 public record PericiaRequest(
         Integer id,
         String nome,

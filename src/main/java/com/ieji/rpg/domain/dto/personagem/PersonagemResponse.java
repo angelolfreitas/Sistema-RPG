@@ -2,7 +2,33 @@ package com.ieji.rpg.domain.dto.personagem;
 
 import com.ieji.rpg.domain.dto.BaseDTO;
 import com.ieji.rpg.domain.entity.Personagem;
-
+/// DTO de response.
+/// possui:
+/// Integer: id — id do personagem
+/// Integer: usuarioId
+/// String: aparencia
+/// String: personalidade
+/// String: historico
+/// String: objetivo
+/// Integer: agilidade
+/// Integer: forca
+/// Integer: intelecto
+/// Integer: presenca
+/// Integer: vigor
+/// Integer: nex
+/// Integer: pvAtual
+/// Integer: pvMaximo
+/// Integer: sanAtual
+/// Integer: sanMaxima
+/// Integer: peAtual
+/// Integer: peMaximo
+/// Integer: defesa
+/// String: nome
+/// String: imagemUrl
+///
+/// constructByEntity(): converte a entidade Personagem para este DTO,
+/// mapeando idPersonagem, o id do usuário dono e todos os demais atributos
+/// (atributos base, pontos de vida/sanidade/pe, defesa, nomeJogador e imagemUrl).
 public record PersonagemResponse(
         Integer id,
         Integer usuarioId,

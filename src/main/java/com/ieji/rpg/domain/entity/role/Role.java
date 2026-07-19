@@ -5,7 +5,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.List;
 import java.util.Set;
-
+/// enum com os papéis (roles) de usuário do sistema: ADMIN, MANAGER, USER.
+/// Cada papel possui um conjunto (roleAuthorities) de Authorities associadas,
+/// sendo cumulativo em nível de acesso (ADMIN > MANAGER > USER).
+///
+/// getAuthorities(): converte o conjunto de Authorities do papel em uma
+/// lista de SimpleGrantedAuthority (formato usado pelo Spring Security),
+/// e adiciona também a authority "ROLE_" + nome do papel (ex.: "ROLE_ADMIN"),
+/// necessária para checagens baseadas em hasRole().
 @RequiredArgsConstructor
 public enum Role {
     ADMIN

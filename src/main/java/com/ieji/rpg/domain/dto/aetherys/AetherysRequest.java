@@ -2,7 +2,12 @@ package com.ieji.rpg.domain.dto.aetherys;
 
 import com.ieji.rpg.domain.dto.BaseDTO;
 import lombok.Setter;
-
+/// DTO de request.
+/// precisa de um:
+/// Integer: id
+/// String: nome
+/// String: funcao
+/// String: teste exigido
 public record AetherysRequest(
         Integer id,
         String nome,

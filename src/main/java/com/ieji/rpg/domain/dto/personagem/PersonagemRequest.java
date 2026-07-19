@@ -3,7 +3,34 @@ package com.ieji.rpg.domain.dto.personagem;
 import com.ieji.rpg.domain.dto.BaseDTO;
 import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
-
+/// DTO de request.
+/// precisa de um:
+/// Integer: id
+/// Integer: usuarioId — dono do personagem
+/// String: aparencia
+/// String: personalidade
+/// String: historico
+/// String: objetivo
+/// Integer: agilidade
+/// Integer: forca
+/// Integer: intelecto
+/// Integer: presenca
+/// Integer: vigor
+/// Integer: nex
+/// Integer: pvAtual
+/// Integer: pvMaximo
+/// Integer: sanAtual
+/// Integer: sanMaxima
+/// Integer: peAtual
+/// Integer: peMaximo
+/// Integer: defesa
+/// String: nome
+///
+/// constructByEntity(PersonagemRequest): reconstrói o request mantendo o
+/// mesmo usuarioId já presente no objeto original.
+///
+/// constructByEntity(PersonagemRequest, Integer): reconstrói o request
+/// substituindo o usuarioId pelo informado, copiando todos os demais campos.
 public record PersonagemRequest(
         Integer id,
         Integer usuarioId,

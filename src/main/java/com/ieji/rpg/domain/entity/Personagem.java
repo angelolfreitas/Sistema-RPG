@@ -11,7 +11,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
+/// tabela de personagens.
+/// Possui o id do personagem
+/// o usuário dono (relação N:1 com Usuario, lazy)
+/// o nome de exibição do jogador (nomeJogador)
+/// campos de texto livre: aparencia, personalidade, historico, objetivo
+/// atributos base: agilidade, forca, intelecto, presenca, vigor (default 1), nex (default 5)
+/// pontos de vida: pvAtual, pvMaximo
+/// sanidade: sanAtual, sanMaxima
+/// pontos de esforço: peAtual, peMaximo
+/// defesa
+/// imagemUrl
+/// aetherys: relação N:N com Aetherys, via tabela de junção personagem_aetherys
+///
+/// consturctPersonagem(): cria uma nova instância de Personagem a partir do
+/// PersonagemRequest e do usuário dono, mapeando todos os atributos, pontos
+/// e o nomeJogador (a partir de object.nome()).
+///
+/// setByEntity(): atualiza todos os campos editáveis do personagem
+/// (exceto id, usuario, imagemUrl e aetherys) a partir de um PersonagemRequest.
 @Entity
 @Table(name = "personagem")
 @Getter

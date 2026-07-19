@@ -2,7 +2,10 @@ package com.ieji.rpg.domain.entity.role;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
+/// enum com as autoridades (permissões granulares) do sistema.
+/// Cada valor possui um name (String) usado como authority do Spring Security.
+/// Dividido por nível de papel (admin, manager, user) e por tipo de ação
+/// (read, write, delete, manage).
 @RequiredArgsConstructor
 public enum Authorities {
     ADMIN_READ("admin::read"),

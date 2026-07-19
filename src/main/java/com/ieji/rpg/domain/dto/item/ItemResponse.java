@@ -2,7 +2,15 @@ package com.ieji.rpg.domain.dto.item;
 
 import com.ieji.rpg.domain.dto.BaseDTO;
 import com.ieji.rpg.domain.entity.Item;
-
+/// DTO de response.
+/// possui:
+/// Integer: id — id do item
+/// String: nome
+/// String: descricao
+/// Integer: quantidade
+///
+/// constructByEntity(): converte a entidade Item para este DTO,
+/// mapeando idItem, nome, descricao e quantidade.
 public record ItemResponse(
         Integer id,
         String nome,

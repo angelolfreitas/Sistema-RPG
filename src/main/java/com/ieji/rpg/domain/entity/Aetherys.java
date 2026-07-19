@@ -4,7 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Set;
-
+/// tabela de aetherys (equipamentos/artefatos especiais dos personagens).
+/// Possui o id do aetherys
+/// o nome (até 100 caracteres)
+/// a funcao (texto livre)
+/// o testeExigido (até 50 caracteres)
+/// os personagens que possuem este aetherys (lado inverso da relação N:N,
+/// mapeada pelo campo "aetherys" em Personagem)
 @Entity
 @Table(name = "aetherys")
 @Getter

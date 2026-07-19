@@ -2,7 +2,18 @@ package com.ieji.rpg.domain.entity.monstro;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+/// tabela de monstros.
+/// Possui o id do monstro
+/// o nome (até 100 caracteres)
+/// o pvMaximo e o pv (pontos de vida atuais)
+/// o san (sanidade perdida ao enfrentá-lo, até 50 caracteres)
+/// o ataquesEspeciais (texto livre)
+/// o comportamento (texto livre)
+/// o fraquezas (texto livre)
+/// o imagemUrl
+/// o emBatalha (flag indicando se está atualmente em combate, default false)
+/// o conhecido (flag indicando se é conhecido de forma geral, default false)
+/// o material (tipo de material do monstro: CARNE ou ESPECTRAL, default CARNE)
 @Entity
 @Table(name = "monstro")
 @Getter

@@ -2,7 +2,10 @@ package com.ieji.rpg.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+/// tabela de perícias disponíveis no sistema.
+/// Possui o id da perícia
+/// o nome (até 50 caracteres)
+/// o atributoBase (atributo do personagem que rege essa perícia, até 20 caracteres)
 @Entity
 @Table(name = "pericia")
 @Getter

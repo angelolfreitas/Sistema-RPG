@@ -7,7 +7,30 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
+/// DTO de response.
+/// possui:
+/// Integer: id — id do monstro
+/// String: nome
+/// Integer: pv
+/// Integer: pvMaximo
+/// String: san
+/// String: ataquesEspeciais
+/// String: comportamento
+/// String: fraquezas
+/// String: imagemUrl
+/// Boolean: emBatalha
+/// Boolean: conhecido — indica quanto detalhe o usuário atual pode ver
+/// MaterialMonstro: material
+///
+/// constructByEntity(): monta a resposta completa (visão de mestre/conhecido total),
+/// mapeando todos os campos da entidade e marcando conhecido = true.
+///
+/// buildByUser(): monta a resposta oculta para usuário que não conhece o monstro,
+/// expondo apenas id, emBatalha, material e conhecido = false (demais campos nulos).
+///
+/// buildExhibit(): monta a resposta parcial para usuário que já viu o monstro
+/// (não é mestre), expondo id, emBatalha, nome, pv, pvMaximo, imagemUrl,
+/// material e conhecido = true (sem ataquesEspeciais/comportamento/fraquezas/san).
 @Setter
 @Getter
 @AllArgsConstructor

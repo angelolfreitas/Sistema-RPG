@@ -2,7 +2,10 @@ package com.ieji.rpg.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+/// tabela de perguntas associadas a um caso de investigação.
+/// Possui o id da pergunta
+/// o caso ao qual pertence (relação N:1 com CasoInvestigacao, lazy)
+/// o textoPergunta (texto livre)
 @Entity
 @Table(name = "pergunta")
 @Getter
