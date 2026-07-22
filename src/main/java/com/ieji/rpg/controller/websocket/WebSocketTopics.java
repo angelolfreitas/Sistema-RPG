@@ -11,7 +11,7 @@ public final class WebSocketTopics {
 
     private WebSocketTopics() {
     }
-
+    @Deprecated
     public static String chat(Integer casoId) {
         return "/topic/caso/" + casoId + "/chat";
     }

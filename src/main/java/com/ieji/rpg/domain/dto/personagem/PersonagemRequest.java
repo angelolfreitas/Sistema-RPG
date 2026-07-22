@@ -1,8 +1,7 @@
 package com.ieji.rpg.domain.dto.personagem;
 
 import com.ieji.rpg.domain.dto.BaseDTO;
-import com.ieji.rpg.domain.entity.Personagem;
-import com.ieji.rpg.domain.entity.Usuario;
+
 /// DTO de request.
 /// precisa de um:
 /// Integer: id

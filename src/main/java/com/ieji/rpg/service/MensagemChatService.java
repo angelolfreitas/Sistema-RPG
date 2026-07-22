@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 /// salvarMensagem(): monta e persiste uma nova mensagem de chat.
 /// Busca o caso pelo id (lança exceção se não existir).
@@ -33,7 +34,7 @@ import java.util.Optional;
 /// formato de nome; se o usuário não tiver nenhum personagem, retorna apenas o username.
 ///
 /// create(): sobrescreve o create() genérico do AbstractService apenas para
-/// aplicar a anotação @Transactional; delega toda a lógica para o super.create().
+/// aplicar a anotação ; delega toda a lógica para o super.create().
 ///
 /// construct(): define quem é o autor da mensagem a partir do contexto de segurança.
 /// Se houver um usuário autenticado (não anônimo) no SecurityContextHolder, usa o id
@@ -48,6 +49,7 @@ import java.util.Optional;
 ///
 /// listarHistoricoDoCaso(): retorna todas as mensagens de um caso específico,
 /// ordenadas por data de envio (ascendente), já convertidas para o DTO de resposta.
+@Transactional
 @Service
 public class MensagemChatService extends AbstractService<MensagemChat, Integer, MensagemChatRequest, MensagemChatResponse> {
 
@@ -68,7 +70,7 @@ public class MensagemChatService extends AbstractService<MensagemChat, Integer, 
         this.personagemRepository = personagemRepository;
     }
 
-    @Transactional
+
     public MensagemChatResponse salvarMensagem(Integer casoId, Integer autorId, Integer personagemId, String conteudo) {
         CasoInvestigacao caso = casoRepository.findById(casoId)
                 .orElseThrow(() -> new EntityNotFoundException("Caso não encontrado"));
@@ -102,7 +104,7 @@ public class MensagemChatService extends AbstractService<MensagemChat, Integer, 
                 .orElse(autor.getUsername());
     }
     @Override
-    @Transactional
+
     public Optional<MensagemChatResponse> create(MensagemChatRequest dto) {
         return super.create(dto);
     }
@@ -112,7 +114,7 @@ public class MensagemChatService extends AbstractService<MensagemChat, Integer, 
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             Usuario usuarioLogado = (Usuario) auth.getPrincipal();
-            return salvarMensagem(dto.idCaso(), usuarioLogado.getId(), dto.personagemId(), dto.conteudo());
+            return salvarMensagem(dto.idCaso(), Objects.requireNonNull(usuarioLogado).getId(), dto.personagemId(), dto.conteudo());
         }
 
         if (dto.authorId() != null) {

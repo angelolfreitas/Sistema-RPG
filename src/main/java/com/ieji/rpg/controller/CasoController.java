@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 ///Controller de casos de investigação. Tem:
 ///  post que precisa de um CasoRequest
@@ -88,7 +89,7 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
     @PreAuthorize("hasAuthority('user::write')")
     public ResponseEntity<Void> entrarNaSessao(@PathVariable Integer id, Authentication auth) {
         Usuario usuarioLogado = (Usuario) auth.getPrincipal();
-        casoInvestigacaoService.adicionarJogador(id, usuarioLogado.getEmail());
+        casoInvestigacaoService.adicionarJogador(id, Objects.requireNonNull(usuarioLogado).getEmail());
         return ResponseEntity.ok().build();
     }
 

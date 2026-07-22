@@ -54,6 +54,7 @@ import java.util.Map;
 /// patchComAcesso(): valida o acesso do usuário ao personagem, aplica o patch
 /// parcial dos campos informados e retorna o personagem atualizado.
 @Service
+@Transactional
 public class PersonagemService extends AbstractService<Personagem, Integer, PersonagemRequest, PersonagemResponse> {
 
     private final PersonagemRepository repository;
@@ -77,7 +78,6 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
     }
 
     @Override
-    @Transactional
     public void delete(Integer id) {
         inventarioRepository.deleteByPersonagem_IdPersonagem(id);
         personagemPericiaRepository.deleteByPersonagem_IdPersonagem(id);

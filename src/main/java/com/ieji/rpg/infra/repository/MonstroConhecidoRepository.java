@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface MonstroConhecidoRepository extends JpaRepository<MonstroConhecido, Long> {
-
+    @Deprecated
     @Query("SELECT mc FROM MonstroConhecido mc " +
             "JOIN FETCH mc.monstro " +
             "JOIN FETCH mc.personagem p " +
@@ -18,6 +18,7 @@ public interface MonstroConhecidoRepository extends JpaRepository<MonstroConheci
     List<MonstroConhecido> findByPersonagem_Usuario_Id(@Param("usuarioId") Integer usuarioId);
 
     boolean existsByMonstro_IdMonstroAndPersonagem_Usuario_Id(Integer idMonstro, Integer usuarioId);
+    @Deprecated
     boolean existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(Integer idMonstro, Integer idPersonagem);
     void deleteByMonstro_IdMonstro(Integer id);
     void deleteByPersonagem_IdPersonagem(Integer idPersonagem);

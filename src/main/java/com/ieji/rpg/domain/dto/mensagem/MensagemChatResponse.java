@@ -4,7 +4,7 @@ import com.ieji.rpg.domain.entity.MensagemChat;
 import lombok.Builder;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+
 /// DTO de response.
 /// possui:
 /// Integer: id — id da mensagem

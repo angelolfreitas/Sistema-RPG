@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/personagem")
@@ -80,6 +81,6 @@ public class PersonagemController extends AbstractController<Personagem, Integer
 
     private Usuario usuarioLogado() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (Usuario) authentication.getPrincipal();
+        return (Usuario) Objects.requireNonNull(authentication).getPrincipal();
     }
 }

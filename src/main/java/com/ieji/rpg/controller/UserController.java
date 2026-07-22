@@ -8,12 +8,12 @@ import com.ieji.rpg.domain.dto.user.LoginResponse;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.domain.entity.role.Role;
 import com.ieji.rpg.service.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+
 /// Aprovveita as superdefinicopes e só restringe o acesso
 ///
 /// O método hanldeIllegalstate trata excessoes para o logger.

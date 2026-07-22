@@ -51,7 +51,7 @@ public class SessaoAgendadaService {
 
     private static final DateTimeFormatter FORMATADOR =
             DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-                    .withLocale(new Locale("pt", "BR"));
+                    .withLocale(Locale.of("pt", "BR"));
 
     private final SessaoAgendadaRepository sessaoAgendadaRepository;
     private final CasoInvestigacaoRepository casoInvestigacaoRepository;

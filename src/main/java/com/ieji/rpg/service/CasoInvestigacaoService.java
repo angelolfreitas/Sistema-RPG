@@ -71,7 +71,7 @@ public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, I
     protected CasoResponse construct(CasoRequest dto) {
         Usuario usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
-        Usuario mestre = usuarioRepository.findByEmail(usuarioLogado.getEmail())
+        Usuario mestre = usuarioRepository.findByEmail(Objects.requireNonNull(usuarioLogado).getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("Usuário mestre não encontrado"));
 
         CasoInvestigacao caso = CasoInvestigacao.builder()

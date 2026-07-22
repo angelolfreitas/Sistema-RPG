@@ -8,16 +8,17 @@ import com.ieji.rpg.infra.repository.*;
 import com.ieji.rpg.infra.security.TokenService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 /// solicitarResetSenha(): inicia o fluxo de redefinição de senha.
 /// Busca o usuário pelo e-mail; se existir, gera um token único (UUID),
 /// salva um PasswordResetToken com validade de 1 hora e envia um e-mail
@@ -221,9 +222,7 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
         });
 
         List<Personagem> personagens = personagemRepository.findByUsuarioId(id);
-        personagens.forEach(p -> {
-            personagemService.delete(p.getIdPersonagem());
-        });
+        personagens.forEach(p -> personagemService.delete(p.getIdPersonagem()));
 
         List<MensagemChat> mensagens = mensagemChat.findByAutor_Id(id);
         mensagens.forEach(m -> m.setAutor(null));

@@ -1,6 +1,5 @@
 package com.ieji.rpg.infra.repository;
 
-import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.domain.entity.role.Role;
 import org.springframework.data.jpa.repository.JpaRepository;

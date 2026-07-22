@@ -16,6 +16,6 @@ import java.util.Optional;
 public interface ItemRepository extends JpaRepository<Item, Integer> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT i FROM Item i WHERE i.id = :id")
+    @Query("SELECT i FROM Item i WHERE i.idItem = :id")
     Optional<Item> findByIdWithLock(@Param("id") Integer id);
 }

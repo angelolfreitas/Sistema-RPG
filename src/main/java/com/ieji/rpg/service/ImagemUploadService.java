@@ -17,7 +17,7 @@ public class ImagemUploadService {
     private final Cloudinary cloudinary;
 
     public String upload(MultipartFile file, String pasta) throws IOException {
-        Transformation transformation = new Transformation()
+        Transformation<?> transformation = new Transformation<>()
                 .width(600)
                 .height(600)
                 .crop("limit")

@@ -29,8 +29,6 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class PresencaWebSocketController {
 
-    // Casa qualquer subtópico de um caso, ex: /topic/caso/42/chat,
-    // /topic/caso/42/batalha, /topic/caso/42 — captura só o id.
     private static final Pattern TOPICO_CASO = Pattern.compile("^/topic/caso/(\\d+)(?:/.*)?$");
 
     private final SimpMessagingTemplate messagingTemplate;

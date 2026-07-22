@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 /// Serviço que recorre ao Google Cloud (Gmail API) para enviar e-mails.
@@ -105,7 +106,7 @@ public class EmailService {
                     .retrieve()
                     .body(Map.class);
 
-            String accessToken = (String) response.get("access_token");
+            String accessToken = (String) Objects.requireNonNull(response).get("access_token");
             long expiraEmSegundos = response.get("expires_in") instanceof Number n
                     ? n.longValue()
                     : 3600L;

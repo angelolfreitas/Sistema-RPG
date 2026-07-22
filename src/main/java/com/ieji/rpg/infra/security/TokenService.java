@@ -4,16 +4,12 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Usuario;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.core.Local;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 @Service
@@ -24,7 +20,7 @@ public class TokenService {
         Algorithm algorithm;
         try{
             algorithm = Algorithm.HMAC256(secret);
-            String token = JWT.create()
+            return JWT.create()
                     .withIssuer("ieji_rpg")
                     .withSubject(user.getEmail())
                     .withExpiresAt(generateExpirationDate())
@@ -32,7 +28,6 @@ public class TokenService {
                             .map(GrantedAuthority::getAuthority)
                             .toList())
                     .sign(algorithm);
-            return token;
         }catch(JWTCreationException e){
             throw new RuntimeException("Error while authenticating");
         }

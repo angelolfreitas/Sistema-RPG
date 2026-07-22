@@ -1,16 +1,11 @@
 package com.ieji.rpg.domain.entity;
 
 import com.ieji.rpg.domain.dto.personagem.PersonagemRequest;
-import com.ieji.rpg.domain.entity.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
-import org.jspecify.annotations.Nullable;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
+
 /// tabela de personagens.
 /// Possui o id do personagem
 /// o usuário dono (relação N:1 com Usuario, lazy)
