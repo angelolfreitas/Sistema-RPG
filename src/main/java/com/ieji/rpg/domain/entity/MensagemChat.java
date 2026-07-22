@@ -2,7 +2,7 @@ package com.ieji.rpg.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 /// tabela de mensagens do chat de um caso.
 /// Possui o id da mensagem
 /// o caso ao qual pertence (relação N:1 com CasoInvestigacao, lazy)
@@ -36,7 +36,7 @@ public class MensagemChat {
     private String conteudo;
 
     @Column(name = "enviado_em", nullable = false)
-    private LocalDateTime enviadoEm;
+    private Instant enviadoEm;
 
     @Column(name = "nome_exibicao", nullable = false)
     private String nomeExibicao;

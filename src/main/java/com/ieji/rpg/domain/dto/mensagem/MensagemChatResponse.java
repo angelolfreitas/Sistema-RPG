@@ -3,6 +3,7 @@ package com.ieji.rpg.domain.dto.mensagem;
 import com.ieji.rpg.domain.entity.MensagemChat;
 import lombok.Builder;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 /// DTO de response.
 /// possui:
@@ -21,7 +22,7 @@ public record MensagemChatResponse(
         Integer idCaso,
         String autorNome,
         String conteudo,
-        LocalDateTime enviadoEm
+        Instant enviadoEm
 ) {
     public static MensagemChatResponse constructByEntity(MensagemChat entity) {
         return MensagemChatResponse.builder()

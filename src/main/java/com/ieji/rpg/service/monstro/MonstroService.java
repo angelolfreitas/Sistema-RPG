@@ -16,7 +16,6 @@ import com.ieji.rpg.service.AbstractService;
 import com.ieji.rpg.service.AutorizacaoService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
@@ -54,19 +53,24 @@ import java.util.Optional;
 public class MonstroService extends AbstractService<Monstro, Integer, MonstroRequest, MonstroResponse> {
 
 
-    public MonstroService(MonstroRepository repository) {
+    public MonstroService(MonstroRepository repository, MonstroConhecidoRepository monstroConhecidoRepository, PersonagemRepository personagemRepository, MonstroCacheService monstroCacheService, CasoInvestigacaoRepository casoRepository, AutorizacaoService autorizacaoService) {
         super(repository);
+        this.monstroConhecidoRepository = monstroConhecidoRepository;
+        this.personagemRepository = personagemRepository;
+        this.monstroCacheService = monstroCacheService;
+        this.casoRepository = casoRepository;
+        this.autorizacaoService = autorizacaoService;
     }
-    @Autowired
-    private MonstroConhecidoRepository monstroConhecidoRepository;
-    @Autowired
-    private PersonagemRepository personagemRepository;
-    @Autowired
-    private MonstroCacheService monstroCacheService;
-    @Autowired
-    private CasoInvestigacaoRepository casoRepository;
-    @Autowired
-    private AutorizacaoService autorizacaoService;
+
+    private final MonstroConhecidoRepository monstroConhecidoRepository;
+
+    private final PersonagemRepository personagemRepository;
+
+    private final MonstroCacheService monstroCacheService;
+
+    private final CasoInvestigacaoRepository casoRepository;
+
+    private final AutorizacaoService autorizacaoService;
 
     @Override
     @Transactional
@@ -88,19 +92,18 @@ public class MonstroService extends AbstractService<Monstro, Integer, MonstroReq
         Monstro monstro = repository.findById(monstroId).orElse(null);
         if (monstro == null) return;
 
-        List<Personagem> personagens = personagemRepository.findAll();
-        personagens.forEach(personagem -> {
-            boolean jaConhece = monstroConhecidoRepository
-                    .existsByMonstro_IdMonstroAndPersonagem_IdPersonagem(monstroId, personagem.getIdPersonagem());
+        List<Personagem> personagensSemConhecimento =
+                personagemRepository.findQuemNaoConheceMonstro(monstroId);
 
-            if (!jaConhece) {
-                monstroConhecidoRepository.save(MonstroConhecido.builder()
+        List<MonstroConhecido> novosConhecimentos = personagensSemConhecimento.stream()
+                .map(personagem -> MonstroConhecido.builder()
                         .monstro(monstro)
                         .personagem(personagem)
                         .conhecidoEm(java.time.Instant.now())
-                        .build());
-            }
-        });
+                        .build())
+                .toList();
+
+        monstroConhecidoRepository.saveAll(novosConhecimentos);
     }
 
 

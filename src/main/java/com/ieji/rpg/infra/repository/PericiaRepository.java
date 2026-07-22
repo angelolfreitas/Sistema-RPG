@@ -10,5 +10,4 @@ import java.util.Optional;
 
 @Repository
 public interface PericiaRepository extends JpaRepository<Pericia, Integer> {
-    Optional<Pericia> findByNome(String nome);
 }

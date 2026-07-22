@@ -9,7 +9,7 @@ import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
 import com.ieji.rpg.infra.repository.SessaoAgendadaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 /// com papel USER ou MANAGER, monta o corpo do e-mail informando que a
 /// sessão foi desmarcada pelo mestre e envia via EmailService.
 @Service
+@AllArgsConstructor
 public class SessaoAgendadaService {
 
     private static final DateTimeFormatter FORMATADOR =
@@ -54,15 +55,7 @@ public class SessaoAgendadaService {
 
     private final SessaoAgendadaRepository sessaoAgendadaRepository;
     private final CasoInvestigacaoRepository casoInvestigacaoRepository;
-
-    @Autowired
-    private EmailService emailService;
-
-    public SessaoAgendadaService(SessaoAgendadaRepository sessaoAgendadaRepository,
-                                 CasoInvestigacaoRepository casoInvestigacaoRepository) {
-        this.sessaoAgendadaRepository = sessaoAgendadaRepository;
-        this.casoInvestigacaoRepository = casoInvestigacaoRepository;
-    }
+    private final EmailService emailService;
 
     @Transactional
     public SessaoAgendadaResponse agendar(Integer idCaso, AgendarSessaoRequest request) {

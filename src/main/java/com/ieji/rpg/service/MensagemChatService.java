@@ -15,9 +15,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 /// salvarMensagem(): monta e persiste uma nova mensagem de chat.
 /// Busca o caso pelo id (lança exceção se não existir).
@@ -82,7 +81,7 @@ public class MensagemChatService extends AbstractService<MensagemChat, Integer, 
                 .caso(caso)
                 .autor(autor)
                 .conteudo(conteudo)
-                .enviadoEm(LocalDateTime.now())
+                .enviadoEm(Instant.now())
                 .nomeExibicao(nomeExibicao)
                 .build();
 

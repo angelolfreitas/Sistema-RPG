@@ -14,7 +14,6 @@ import java.util.Optional;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Integer> {
-    Optional<Item> findByNome(String nome);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id = :id")

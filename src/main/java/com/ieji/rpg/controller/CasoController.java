@@ -41,10 +41,12 @@ import java.util.List;
 public class CasoController extends AbstractController<CasoInvestigacao, Integer, CasoRequest, CasoResponse> {
 
     private final SessaoAgendadaService sessaoAgendadaService;
+    private final CasoInvestigacaoService casoInvestigacaoService;
 
     protected CasoController(CasoInvestigacaoService service, SessaoAgendadaService sessaoAgendadaService) {
         super(service);
         this.sessaoAgendadaService = sessaoAgendadaService;
+        this.casoInvestigacaoService = service;
     }
     @Override
     @PostMapping
@@ -86,20 +88,20 @@ public class CasoController extends AbstractController<CasoInvestigacao, Integer
     @PreAuthorize("hasAuthority('user::write')")
     public ResponseEntity<Void> entrarNaSessao(@PathVariable Integer id, Authentication auth) {
         Usuario usuarioLogado = (Usuario) auth.getPrincipal();
-        ((CasoInvestigacaoService) service).adicionarJogador(id, usuarioLogado.getEmail());
+        casoInvestigacaoService.adicionarJogador(id, usuarioLogado.getEmail());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}/jogadores")
     @PreAuthorize("hasAuthority('user::read')")
     public ResponseEntity<List<String>> listarJogadores(@PathVariable Integer id) {
-        List<String> jogadores = ((CasoInvestigacaoService) service).listarJogadores(id);
+        List<String> jogadores = casoInvestigacaoService.listarJogadores(id);
         return ResponseEntity.ok(jogadores);
     }
     @GetMapping("/{id}/usuarios")
     @PreAuthorize("hasAuthority('admin::write') or hasAuthority('manager::write')")
     public ResponseEntity<List<CasoUsuarioResponse>> listarUsuariosCompletos(@PathVariable Integer id) {
-        return ResponseEntity.ok(((CasoInvestigacaoService) service).listarUsuariosCompletos(id));
+        return ResponseEntity.ok(casoInvestigacaoService.listarUsuariosCompletos(id));
     }
 
 

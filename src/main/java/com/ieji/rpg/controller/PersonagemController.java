@@ -18,9 +18,11 @@ import java.util.Map;
 @RequestMapping("/personagem")
 @PreAuthorize("hasAuthority('user::write')")
 public class PersonagemController extends AbstractController<Personagem, Integer, PersonagemRequest, PersonagemResponse> {
+    private final PersonagemService personagemService;
 
     protected PersonagemController(PersonagemService service) {
         super(service);
+        this.personagemService = service;
     }
 
     @Override
@@ -35,18 +37,18 @@ public class PersonagemController extends AbstractController<Personagem, Integer
     @Override
     @GetMapping
     public ResponseEntity<List<PersonagemResponse>> findAll() {
-        return ResponseEntity.ok(personagemService().listarParaUsuario(usuarioLogado()));
+        return ResponseEntity.ok(personagemService.listarParaUsuario(usuarioLogado()));
     }
 
     @GetMapping("/meu")
     public ResponseEntity<List<PersonagemResponse>> meusPersonagens() {
-        return ResponseEntity.ok(personagemService().findByUsuarioLogado(usuarioLogado().getId()));
+        return ResponseEntity.ok(personagemService.findByUsuarioLogado(usuarioLogado().getId()));
     }
 
     @Override
     @GetMapping("/{id}")
     public ResponseEntity<PersonagemResponse> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(personagemService().getComAcesso(id, usuarioLogado()));
+        return ResponseEntity.ok(personagemService.getComAcesso(id, usuarioLogado()));
     }
 
     @Override
@@ -55,13 +57,13 @@ public class PersonagemController extends AbstractController<Personagem, Integer
         if (dto.id() == null) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(personagemService().updateComAcesso(dto, usuarioLogado()));
+        return ResponseEntity.ok(personagemService.updateComAcesso(dto, usuarioLogado()));
     }
 
     @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        personagemService().deleteComAcesso(id, usuarioLogado());
+        personagemService.deleteComAcesso(id, usuarioLogado());
         return ResponseEntity.noContent().build();
     }
 
@@ -71,12 +73,10 @@ public class PersonagemController extends AbstractController<Personagem, Integer
             @PathVariable Integer id,
             @RequestBody Map<String, Object> fields
     ) {
-        return ResponseEntity.ok(personagemService().patchComAcesso(id, fields, usuarioLogado()));
+        return ResponseEntity.ok(personagemService.patchComAcesso(id, fields, usuarioLogado()));
     }
 
-    private PersonagemService personagemService() {
-        return (PersonagemService) service;
-    }
+
 
     private Usuario usuarioLogado() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

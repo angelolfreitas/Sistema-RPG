@@ -8,5 +8,4 @@ import java.util.Optional;
 
 @Repository
 public interface MonstroRepository extends JpaRepository<Monstro, Integer> {
-    Optional<Monstro> findByNome(String nome);
 }

@@ -7,7 +7,6 @@ import com.ieji.rpg.domain.entity.Usuario;
 import com.ieji.rpg.infra.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -61,21 +60,20 @@ public class PersonagemService extends AbstractService<Personagem, Integer, Pers
     private final UserRepository userRepository;
     private final AutorizacaoService autorizacaoService;
 
-    @Autowired
-    private MonstroConhecidoRepository monstroConhecidoRepository;
+    private final MonstroConhecidoRepository monstroConhecidoRepository;
+    private final InventarioRepository inventarioRepository;
 
-    @Autowired
-    private InventarioRepository inventarioRepository;
-
-    @Autowired
-    private PersonagemPericiaRepository personagemPericiaRepository;
+    private final PersonagemPericiaRepository personagemPericiaRepository;
 
     public PersonagemService(PersonagemRepository repository, UserRepository userRepository,
-                             AutorizacaoService autorizacaoService) {
+                             AutorizacaoService autorizacaoService, MonstroConhecidoRepository monstroConhecidoRepository, InventarioRepository inventarioRepository, PersonagemPericiaRepository personagemPericiaRepository) {
         super(repository);
         this.repository = repository;
         this.userRepository = userRepository;
         this.autorizacaoService = autorizacaoService;
+        this.monstroConhecidoRepository = monstroConhecidoRepository;
+        this.inventarioRepository = inventarioRepository;
+        this.personagemPericiaRepository = personagemPericiaRepository;
     }
 
     @Override

@@ -7,14 +7,12 @@ import com.ieji.rpg.domain.entity.role.Role;
 import com.ieji.rpg.infra.repository.*;
 import com.ieji.rpg.infra.security.TokenService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -54,37 +52,37 @@ import java.util.UUID;
 ///
 @Service
 public class UserService extends AbstractService <Usuario, Integer, LoginRequest, LoginResponse>{
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private TokenService tokenService;
+    private final TokenService tokenService;
 
     private final PersonagemRepository personagemRepository;
 
     private final CasoInvestigacaoRepository casoInvestigacaoRepository;
 
-    public UserService(UserRepository repository,
+    public UserService(UserRepository repository, PasswordEncoder passwordEncoder, TokenService tokenService,
                        PersonagemRepository personagemRepository,
-                       CasoInvestigacaoRepository casoInvestigacaoRepository,
+                       CasoInvestigacaoRepository casoInvestigacaoRepository, PasswordResetTokenRepository tokenRepository, EmailService emailService, PersonagemService personagemService,
                        MensagemChatRepository mensagemChat) {
         super(repository);
+        this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
         this.personagemRepository = personagemRepository;
         this.casoInvestigacaoRepository = casoInvestigacaoRepository;
+        this.tokenRepository = tokenRepository;
+        this.emailService = emailService;
+        this.personagemService = personagemService;
         this.mensagemChat = mensagemChat;
     }
 
-    @Autowired
-    private PasswordResetTokenRepository tokenRepository;
+    private final PasswordResetTokenRepository tokenRepository;
 
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
-    @Autowired
-    private PersonagemService personagemService;
+    private final PersonagemService personagemService;
 
 
     private final MensagemChatRepository mensagemChat;
@@ -124,16 +122,17 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
         prt.setUsado(true);
         tokenRepository.save(prt);
     }
+
     public LoginResponse login(LoginRequest data) {
-        Usuario user = ((UserRepository)repository).findByEmail(data.login())
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
+        Usuario user = ((UserRepository) repository).findByEmail(data.login())
+                .orElseThrow(() -> new BadCredentialsException("Credenciais inválidas."));
 
         if (passwordEncoder.matches(data.password(), user.getPassword())) {
             String token = this.tokenService.generateToken(user);
             return new LoginResponse(user.getId(), user.getUsername(), token, user.getRole());
         }
 
-        throw new RuntimeException("Senha inválida.");
+        throw new BadCredentialsException("Credenciais inválidas.");
     }
 
 
@@ -152,10 +151,9 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
     }
 
     public LoginResponse constructAdmin(LoginRequest object, Role role) {
-
-        Optional<Usuario> findObject = repository.findById(object.getId());
-        if(findObject.isPresent()){
-            throw new RuntimeException("já Admin criado");
+        Optional<Usuario> findObject = ((UserRepository) repository).findByEmail(object.login());
+        if (findObject.isPresent()) {
+            throw new IllegalStateException("Usuário com este e-mail já existe.");
         }
         Usuario usuario = Usuario.builder()
                 .role(role)
@@ -199,12 +197,10 @@ public class UserService extends AbstractService <Usuario, Integer, LoginRequest
 
         tokenRepository.deleteByUsuario_Id(id);
 
-        List<CasoInvestigacao> todosCasos = casoInvestigacaoRepository.findAll();
-        todosCasos.forEach(caso -> {
-            if (caso.getJogadores().contains(usuario)) {
-                caso.getJogadores().remove(usuario);
-                casoInvestigacaoRepository.save(caso);
-            }
+        List<CasoInvestigacao> casosComoJogador = casoInvestigacaoRepository.findByJogadorId(id);
+        casosComoJogador.forEach(caso -> {
+            caso.getJogadores().remove(usuario);
+            casoInvestigacaoRepository.save(caso);
         });
 
         List<CasoInvestigacao> casosComoMestre = casoInvestigacaoRepository.findByMestre_Id(id);

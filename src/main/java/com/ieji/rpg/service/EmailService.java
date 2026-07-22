@@ -1,35 +1,27 @@
 package com.ieji.rpg.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
-/// Serviço que reocrre ao googole cloud services para mandar emails.
+import java.util.concurrent.locks.ReentrantLock;
+
+/// Serviço que recorre ao Google Cloud (Gmail API) para enviar e-mails.
 ///
-/// Temos os clientes da api para requerir ao google, acessíveis pelas secrets geradas na aplicação do google.
-///
-/// O sender é o email institucional que será usado para enviar as mensagens.
-///
-/// obterAccessToken(): obtém a permissao do google através das credenciais que injetamos pelas variáveis de ambiente
-///
-/// montarMensagemBase64(): precisa de um destinatário, um assunto e um corpo.
-///1: codifica o assunto do texto com base em caracteres em português
-/// tradicionalmente, esse campo de email só suporta caracteres ASCII, então essa etapa converte o texto para isso
-/// 2: constrói o email cru. Como se estivessemos digitando esses campos em ordem de cima para baixo no aplicativo do gmail
-///
-/// 3: por fim, decodifica tudo para o formato de leitura do gmail.
-///
-/// enviar(): função assincrona, pois o envio de emails nao pode travar o estado da api.
-///
-/// requere o token para liberar o envio, monta o corpo cru do email.
-/// Post para a api do gmail: manda um json formatado requisitando um novo email com base no sender informado
-/// para a API e fornece o token para permitir o envio. Se nãio der para enviar o email, captura a exceção e exibe
-/// na tela (montar a própria depois)
+/// O access token do Google (obtido via refresh_token) tem validade
+/// tipicamente de 1h — em vez de pedir um novo a cada e-mail, guardamos em
+/// cache com uma margem de 60s antes da expiração. Se o Gmail rejeitar o
+/// token com 401 (revogado antes da hora), invalidamos o cache e tentamos
+/// uma vez mais com um token novo.
+@Slf4j
 @Service
 public class EmailService {
 
@@ -39,6 +31,11 @@ public class EmailService {
     private final String clientSecret;
     private final String refreshToken;
     private final String sender;
+
+    private final ReentrantLock tokenLock = new ReentrantLock();
+    private volatile String cachedAccessToken;
+    private volatile Instant cachedTokenExpiraEm = Instant.EPOCH;
+    private static final long MARGEM_SEGURANCA_SEGUNDOS = 60;
 
     public EmailService(@Value("${gmail.client-id}") String clientId,
                         @Value("${gmail.client-secret}") String clientSecret,
@@ -58,6 +55,10 @@ public class EmailService {
 
     @Async
     public void enviar(String destinatario, String assunto, String corpo) {
+        enviarComRetry(destinatario, assunto, corpo, true);
+    }
+
+    private void enviarComRetry(String destinatario, String assunto, String corpo, boolean podeRetentar) {
         try {
             String accessToken = obterAccessToken();
             String raw = montarMensagemBase64(destinatario, assunto, corpo);
@@ -69,24 +70,63 @@ public class EmailService {
                     .body(Map.of("raw", raw))
                     .retrieve()
                     .toBodilessEntity();
+        } catch (RestClientResponseException e) {
+            if (podeRetentar && e.getStatusCode().value() == 401) {
+                log.warn("Token de e-mail rejeitado pelo Gmail, renovando e tentando novamente.");
+                invalidarCache();
+                enviarComRetry(destinatario, assunto, corpo, false);
+                return;
+            }
+            log.error("Falha ao enviar e-mail para {}: {}", destinatario, e.getMessage(), e);
         } catch (Exception e) {
-            System.err.println("Falha ao enviar e-mail para " + destinatario + ": " + e.getMessage());
+            log.error("Falha ao enviar e-mail para {}: {}", destinatario, e.getMessage(), e);
         }
     }
 
     @SuppressWarnings("unchecked")
     private String obterAccessToken() {
-        Map<String, Object> response = tokenClient.post()
-                .uri("/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body("client_id=" + clientId
-                        + "&client_secret=" + clientSecret
-                        + "&refresh_token=" + refreshToken
-                        + "&grant_type=refresh_token")
-                .retrieve()
-                .body(Map.class);
+        if (tokenAindaValido()) {
+            return cachedAccessToken;
+        }
 
-        return (String) response.get("access_token");
+        tokenLock.lock();
+        try {
+            if (tokenAindaValido()) {
+                return cachedAccessToken;
+            }
+
+            Map<String, Object> response = tokenClient.post()
+                    .uri("/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body("client_id=" + clientId
+                            + "&client_secret=" + clientSecret
+                            + "&refresh_token=" + refreshToken
+                            + "&grant_type=refresh_token")
+                    .retrieve()
+                    .body(Map.class);
+
+            String accessToken = (String) response.get("access_token");
+            long expiraEmSegundos = response.get("expires_in") instanceof Number n
+                    ? n.longValue()
+                    : 3600L;
+
+            cachedAccessToken = accessToken;
+            cachedTokenExpiraEm = Instant.now().plusSeconds(
+                    Math.max(0, expiraEmSegundos - MARGEM_SEGURANCA_SEGUNDOS));
+
+            return accessToken;
+        } finally {
+            tokenLock.unlock();
+        }
+    }
+
+    private boolean tokenAindaValido() {
+        return cachedAccessToken != null && Instant.now().isBefore(cachedTokenExpiraEm);
+    }
+
+    private void invalidarCache() {
+        cachedAccessToken = null;
+        cachedTokenExpiraEm = Instant.EPOCH;
     }
 
     private String montarMensagemBase64(String destinatario, String assunto, String corpo) {

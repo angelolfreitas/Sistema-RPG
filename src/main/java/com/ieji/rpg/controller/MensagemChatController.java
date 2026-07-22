@@ -17,14 +17,16 @@ import java.util.List;
 @RequestMapping("/chat")
 @PreAuthorize("hasAuthority('user::read')")
 public class MensagemChatController extends AbstractController<MensagemChat, Integer, MensagemChatRequest, MensagemChatResponse> {
+    private final MensagemChatService mensagemChatService;
 
     protected MensagemChatController(MensagemChatService service) {
         super(service);
+        this.mensagemChatService = service;
     }
 
     @GetMapping("/caso/{idCaso}")
     public ResponseEntity<List<MensagemChatResponse>> getHistorico(@PathVariable Integer idCaso) {
-        List<MensagemChatResponse> historico = ((MensagemChatService) service).listarHistoricoDoCaso(idCaso);
+        List<MensagemChatResponse> historico = mensagemChatService.listarHistoricoDoCaso(idCaso);
         return ResponseEntity.ok(historico);
     }
 }

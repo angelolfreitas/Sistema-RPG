@@ -11,7 +11,6 @@ import com.ieji.rpg.infra.repository.SessaoAgendadaRepository;
 import com.ieji.rpg.infra.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -47,15 +46,17 @@ import java.util.Objects;
 public class CasoInvestigacaoService extends AbstractService<CasoInvestigacao, Integer, CasoRequest, CasoResponse> {
 
     private final UserRepository usuarioRepository;
-    @Autowired
-    private MensagemChatRepository mensagemChatRepository;
 
-    @Autowired
-    private SessaoAgendadaRepository sessaoAgendadaRepository;
+    private final MensagemChatRepository mensagemChatRepository;
 
-    public CasoInvestigacaoService(CasoInvestigacaoRepository repository, UserRepository usuarioRepository) {
+
+    private final SessaoAgendadaRepository sessaoAgendadaRepository;
+
+    public CasoInvestigacaoService(CasoInvestigacaoRepository repository, UserRepository usuarioRepository, MensagemChatRepository mensagemChatRepository, SessaoAgendadaRepository sessaoAgendadaRepository) {
         super(repository);
         this.usuarioRepository = usuarioRepository;
+        this.mensagemChatRepository = mensagemChatRepository;
+        this.sessaoAgendadaRepository = sessaoAgendadaRepository;
     }
     @Transactional
     public List<CasoUsuarioResponse> listarUsuariosCompletos(Integer casoId) {

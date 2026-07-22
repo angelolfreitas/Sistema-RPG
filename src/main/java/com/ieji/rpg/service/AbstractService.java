@@ -1,41 +1,28 @@
 package com.ieji.rpg.service;
 
 import com.ieji.rpg.domain.dto.BaseDTO;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-///Service basico para crud.
-///
-/// Possui um repository com base nas generics entidade, id da entidade, dto de requisicao e de resposta (nessa ordem)
-///
-/// cinstruct: funcao que cria umd to com base numa requisicao
-///
-/// update()> atualiza uma entidade com base numa requisicao de put
-///
-/// convertToResponse: transforma uma entidade num dti
-///
-/// findAll(): retorna todos os itens do service
-///
-/// getById(): retorna um objeto com bas enum id
-///
-/// create(): post para o repository com base em uma requisicao. Regras de negocio basicas.
-///
-/// update(): atualizacao put com base nas funcoes supracitadas
-///
-/// patch: patch de campos com base no json  ena sreflections
-///
-/// delete(): funcao que apaga uma entidade com bas enum id.
-public abstract class AbstractService <T, ID, DTO extends BaseDTO<ID>, DTI>{
+import java.util.Set;
+
+public abstract class AbstractService<T, ID, DTO extends BaseDTO<ID>, DTI> {
 
     protected JpaRepository<T, ID> repository;
+
     public AbstractService(JpaRepository<T, ID> repository) {
         this.repository = repository;
     }
@@ -44,6 +31,11 @@ public abstract class AbstractService <T, ID, DTO extends BaseDTO<ID>, DTI>{
     protected abstract void updateData(T entity, DTO object);
     protected abstract DTI convertToResponse(T entity);
 
+    /// Campos extras que a subclasse quer proteger de PATCH, além dos
+    /// automáticos (id, chave composta, relações JPA). Ex.: senha, role.
+    protected Set<String> camposProibidosNoPatch() {
+        return Collections.emptySet();
+    }
     public List<DTI> findAll() {
         List<T> entities = repository.findAll();
         return entities.stream().map(this::convertToResponse).toList();
@@ -76,24 +68,71 @@ public abstract class AbstractService <T, ID, DTO extends BaseDTO<ID>, DTI>{
         return convertToResponse(updatedEntity);
     }
 
+
+
+
     @Transactional
     public void patchEntity(ID id, Map<String, Object> updates) {
         T entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entity not found"));
+
+        Set<String> proibidos = camposProibidosNoPatch();
+
         updates.forEach((key, value) -> {
+            if (proibidos.contains(key)) {
+                throw new IllegalArgumentException("Campo não editável via PATCH: " + key);
+            }
+
             Field field = ReflectionUtils.findField(entity.getClass(), key);
+            if (field == null) {
+                throw new IllegalArgumentException("Campo inexistente: " + key);
+            }
+            if (isProtegidoPorPadrao(field)) {
+                throw new IllegalArgumentException("Campo não editável via PATCH: " + key);
+            }
+
             field.setAccessible(true);
-            ReflectionUtils.setField(field, entity, value);
+            try {
+                ReflectionUtils.setField(field, entity, coerceValue(field, value));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(
+                        "Valor inválido para o campo '" + key + "': " + value, e);
+            }
         });
+
         this.repository.save(entity);
+    }
+
+    private boolean isProtegidoPorPadrao(Field field) {
+        return field.isAnnotationPresent(Id.class)
+                || field.isAnnotationPresent(EmbeddedId.class)
+                || field.isAnnotationPresent(ManyToOne.class)
+                || field.isAnnotationPresent(OneToMany.class)
+                || field.isAnnotationPresent(ManyToMany.class)
+                || field.isAnnotationPresent(OneToOne.class);
+    }
+
+    /// Coerção simples de tipos numéricos: o Jackson desserializa o corpo
+    /// JSON como Integer/Double "genéricos", que nem sempre batem com o
+    /// tipo exato do campo (ex.: Integer chegando pra um campo Long).
+    private Object coerceValue(Field field, Object value) {
+        if (value == null) return null;
+        Class<?> tipo = field.getType();
+        if (tipo.isInstance(value)) return value;
+
+        return switch (value) {
+            case Number n when (tipo == Long.class || tipo == long.class) -> n.longValue();
+            case Number n when (tipo == Integer.class || tipo == int.class) -> n.intValue();
+            case Number n when (tipo == Double.class || tipo == double.class) -> n.doubleValue();
+            default -> value;
+        };
     }
 
     public void delete(ID id) {
         Optional<T> findObject = repository.findById(id);
-        if(findObject.isEmpty()){
+        if (findObject.isEmpty()) {
             throw new EntityNotFoundException("Entity not found");
         }
         repository.delete(findObject.get());
     }
-
 }

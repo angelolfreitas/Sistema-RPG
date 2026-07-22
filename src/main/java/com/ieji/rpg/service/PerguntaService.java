@@ -6,21 +6,15 @@ import com.ieji.rpg.domain.entity.Pergunta;
 import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
 import com.ieji.rpg.infra.repository.PerguntaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 /// Nao está sendo utilizado
 @Service
 public class PerguntaService extends AbstractService<Pergunta, Integer, PerguntaRequest, PerguntaResponse> {
-    @Autowired
-    private CasoInvestigacaoRepository casoRepository;
+    private final CasoInvestigacaoRepository casoRepository;
 
-    public PerguntaService(PerguntaRepository repository) {
+    public PerguntaService(PerguntaRepository repository, CasoInvestigacaoRepository casoRepository) {
         super(repository);
+        this.casoRepository = casoRepository;
     }
 
     @Override

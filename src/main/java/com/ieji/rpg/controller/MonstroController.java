@@ -30,14 +30,17 @@ import java.util.Objects;
 @PreAuthorize("hasAuthority('user::write')")
 public class MonstroController extends AbstractController<Monstro, Integer, MonstroRequest, MonstroResponse> {
 
+    private final MonstroService monstroService;
+
     protected MonstroController(MonstroService service) {
         super(service);
+        this.monstroService = service;
     }
     @Override
     @GetMapping
     public ResponseEntity<List<MonstroResponse>> findAll() {
         Usuario usuario = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        return ResponseEntity.ok(((MonstroService) service).listarParaUsuario(usuario));
+        return ResponseEntity.ok((monstroService.listarParaUsuario(usuario)));
     }
     @PostMapping("/{id}/dano")
     @PreAuthorize("hasAuthority('admin::write')")
@@ -46,7 +49,7 @@ public class MonstroController extends AbstractController<Monstro, Integer, Mons
             @RequestBody Map<String, Integer> body
     ) {
         Integer dano = body.get("dano");
-        return ResponseEntity.ok(((MonstroService) service).aplicarDano(id, dano));
+        return ResponseEntity.ok((monstroService.aplicarDano(id, dano)));
     }
 
     @Override

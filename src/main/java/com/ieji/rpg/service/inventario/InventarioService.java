@@ -12,7 +12,6 @@ import com.ieji.rpg.infra.repository.PersonagemRepository;
 import com.ieji.rpg.service.AbstractService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -77,14 +76,16 @@ import java.util.Optional;
 public class InventarioService
         extends AbstractService<Inventario, InventarioId, InventarioRequest, InventarioResponse> {
 
-    @Autowired
-    private ItemRepository itemRepository;
 
-    @Autowired
-    private PersonagemRepository personagemRepository;
+    private final ItemRepository itemRepository;
 
-    public InventarioService(InventarioRepository repository) {
+
+    private final PersonagemRepository personagemRepository;
+
+    public InventarioService(InventarioRepository repository, ItemRepository itemRepository, PersonagemRepository personagemRepository) {
         super(repository);
+        this.itemRepository = itemRepository;
+        this.personagemRepository = personagemRepository;
     }
     @Transactional
     @CacheEvict(value = {"inventario", "itens"}, allEntries = true)
@@ -147,10 +148,10 @@ public class InventarioService
 
         Item item = inventario.getItem();
 
-        if(delta > 0 && item.getQuantidade() > delta) {
+        if(delta > 0 && item.getQuantidade() >= delta) {
             item.setQuantidade(item.getQuantidade() - delta);
             inventario.setQuantidade(inventario.getQuantidade() + delta);
-        }else if(delta<0 && inventario.getQuantidade() > -delta) {
+        }else if(delta<0 && inventario.getQuantidade() >= -delta) {
             int qtdDevolvida = Math.min(-delta, inventario.getQuantidade());
             item.setQuantidade(item.getQuantidade() + qtdDevolvida);
             itemRepository.save(item);

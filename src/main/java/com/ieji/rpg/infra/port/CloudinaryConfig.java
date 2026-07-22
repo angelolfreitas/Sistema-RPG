@@ -5,7 +5,8 @@ import com.cloudinary.utils.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+/// Configuração para liebração da api do cloudinary para liberar o acesso. Configura a instancia do cloudinary como bean,
+/// nao sendo necessário reconfigurar.
 @Configuration
 public class CloudinaryConfig {
 

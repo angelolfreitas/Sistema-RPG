@@ -1,81 +1,57 @@
 package com.ieji.rpg.infra.websocket;
 
-import com.ieji.rpg.infra.security.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.simp.stomp.StompCommand;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+/// configuração do WebSocket (STOMP) da aplicação.
+/// O webscoekt permite o envio de requisições para usuárioss em depender deles.
+/// O STOMP facilita o trabalho com o websocket como se fosse um email.
+/// /app: requisicoes dos clientes
+/// /topic: respostas do servidor
+/// habilita o broker (servidor receptor) simples em "/topic" e o prefixo "/app" para mensagens
+/// enviadas pelo cliente.
+/// registra um interceptor no canal de entrada que autentica a conexão
+/// via JWT no momento do CONNECT, extraindo o token do header Authorization,
+/// validando-o e associando o usuário autenticado ao accessor da sessão STOMP.
+/// registra o endpoint público "/ws" (com SockJS) liberado para o front-end
+/// configurado e para subdomínios de preview da Vercel.
+///
+///
+/// EM suma, o front requere para o /app. A primeira requsição é uma tentativa de requisição.
+/// Nesse momento, o JwtHandshakeInterceptor verifica a autorização do usuário
+/// pelo token service. Se ele for autenticado, permite todas as requisições e leituras do usuário ao websocket. Se nao,
+/// proíbe a conexão do usuário.
+
 @Configuration
-@EnableWebSocketMessageBroker
+@EnableWebSocketMessageBroker///habilita a central de mensagens do websocket
 @RequiredArgsConstructor
-@Order(Ordered.HIGHEST_PRECEDENCE + 99)
+@Order(Ordered.HIGHEST_PRECEDENCE + 99)//// Define a injeção dese componente como uma das mais priorizáveis
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final TokenService tokenService;
-    private final UserDetailsService userDetailsService;
 
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic"); // Onde o front vai escutar
-        config.setApplicationDestinationPrefixes("/app"); // Onde o front vai enviar
-    }
+
+    private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
-
+    /// configura as rebdpoints de respostas e requisições
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        config.enableSimpleBroker("/topic");
+        config.setApplicationDestinationPrefixes("/app");
+    }
+    ///Aqui, define o métodod e filtragem das requsições feitas ao websocket
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    try {
-                        String authHeader = accessor.getFirstNativeHeader("Authorization");
-
-                        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                            String token = authHeader.replace("Bearer ", "");
-                            String login = tokenService.validateToken(token);
-
-                            if (login != null) {
-                                UserDetails user = userDetailsService.loadUserByUsername(login);
-                                UsernamePasswordAuthenticationToken authentication =
-                                        new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                                accessor.setUser(authentication);
-
-                                System.out.println("🟢 WEBSOCKET SUCESSO: Usuário [" + login + "] entrou na mesa!");
-                            } else {
-                                System.out.println("🔴 WEBSOCKET ERRO: Token JWT retornou nulo (inválido ou expirado).");
-                            }
-                        } else {
-                            System.out.println("🟡 WEBSOCKET AVISO: Tentativa de conexão sem o header Authorization.");
-                        }
-                    } catch (Exception e) {
-                        System.out.println("💥 WEBSOCKET EXCEPTION: Ocorreu um erro ao autenticar: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                }
-                return message;
-            }
-        });
+        registration.interceptors(jwtHandshakeInterceptor);
     }
 
     @Override
@@ -87,4 +63,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 )
                 .withSockJS();
     }
+
+
 }

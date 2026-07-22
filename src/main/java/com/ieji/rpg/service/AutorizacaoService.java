@@ -3,6 +3,8 @@ package com.ieji.rpg.service;
 import com.ieji.rpg.domain.entity.Usuario;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 /// Único lugar que decide "esse usuário é mestre (manager ou admin)?".
 /// Antes essa regra estava duplicada em PersonagemService, InventarioController
 /// e MonstroService — e a cópia do MonstroService tinha um bug: checava
@@ -13,6 +15,11 @@ public class AutorizacaoService {
 
     public boolean ehMestre(Usuario usuario) {
         return usuario.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("manager::write") || a.getAuthority().equals("admin::write"));
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "manager::write") || Objects.equals(a.getAuthority(), "admin::write"));
+    }
+    // AutorizacaoService.java — adicionar este método
+    public boolean ehAdmin(Usuario usuario) {
+        return usuario.getAuthorities().stream()
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "admin::write"));
     }
 }

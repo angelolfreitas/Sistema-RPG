@@ -12,13 +12,21 @@ import java.util.Optional;
 
 @Repository
 public interface PersonagemRepository extends JpaRepository<Personagem, Integer> {
-    Optional<Personagem> findByNomeJogador(String nome);
-
     Optional<Personagem> findFirstByUsuarioIdOrderByIdPersonagemDesc(Integer usuarioId);
     @Query("SELECT DISTINCT p FROM Personagem p " +
             "LEFT JOIN FETCH p.aetherys " +
             "JOIN FETCH p.usuario " +
             "WHERE p.usuario.id = :usuarioId")
     List<Personagem> findByUsuarioId(@Param("usuarioId") Integer usuarioId);
+
+    @Query("""
+        SELECT p FROM Personagem p
+        WHERE p.idPersonagem NOT IN (
+            SELECT mc.personagem.idPersonagem
+            FROM MonstroConhecido mc
+            WHERE mc.monstro.idMonstro = :monstroId
+        )
+    """)
+    List<Personagem> findQuemNaoConheceMonstro(@Param("monstroId") Integer monstroId);
 
 }

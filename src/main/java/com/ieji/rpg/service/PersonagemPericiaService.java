@@ -8,23 +8,23 @@ import com.ieji.rpg.infra.repository.PericiaRepository;
 import com.ieji.rpg.infra.repository.PersonagemPericiaRepository;
 import com.ieji.rpg.infra.repository.PersonagemRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 /// nao está sendo utilizadp
 @Service
 public class PersonagemPericiaService extends AbstractService<PersonagemPericia, PersonagemPericiaId, PersonagemPericiaRequest, PersonagemPericiaResponse> {
 
-    @Autowired
-    private PersonagemRepository personagemRepository;
 
-    @Autowired
-    private PericiaRepository periciaRepository;
+    private final PersonagemRepository personagemRepository;
 
 
+    private final PericiaRepository periciaRepository;
 
-    public PersonagemPericiaService(PersonagemPericiaRepository repository) {
+
+
+    public PersonagemPericiaService(PersonagemPericiaRepository repository, PersonagemRepository personagemRepository, PericiaRepository periciaRepository) {
         super(repository);
+        this.personagemRepository = personagemRepository;
+        this.periciaRepository = periciaRepository;
     }
 
     @Override

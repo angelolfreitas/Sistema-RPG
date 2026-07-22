@@ -1,26 +1,21 @@
 package com.ieji.rpg.service;
 
-import com.ieji.rpg.domain.dto.personagem.PersonagemRequest;
-import com.ieji.rpg.domain.dto.personagem.PersonagemResponse;
 import com.ieji.rpg.domain.dto.pista.PistaRequest;
 import com.ieji.rpg.domain.dto.pista.PistaResponse;
-import com.ieji.rpg.domain.entity.Personagem;
 import com.ieji.rpg.domain.entity.Pista;
 import com.ieji.rpg.infra.repository.CasoInvestigacaoRepository;
-import com.ieji.rpg.infra.repository.PersonagemRepository;
 import com.ieji.rpg.infra.repository.PistaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 /// Nao está sendo utilizado
 @Service
 public class PistaService extends AbstractService<Pista, Integer, PistaRequest, PistaResponse> {
 
-    @Autowired
-    private CasoInvestigacaoRepository casoRepository;
+    private final CasoInvestigacaoRepository casoRepository;
 
-    public PistaService(PistaRepository repository) {
+    public PistaService(PistaRepository repository, CasoInvestigacaoRepository casoRepository) {
         super(repository);
+        this.casoRepository = casoRepository;
     }
 
     @Override

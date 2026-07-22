@@ -6,7 +6,12 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
-
+/// classe de configurassao dos serviços assíncronos.
+/// Define o número mínimo de theads (2)
+/// O máximo para demandas simultaneas (5)
+/// A capacidade da fila (50)
+/// inicializa o serviço
+/// É um bean então será reaproveitado para tudo o quee stiver anotado vom @Async
 @Configuration
 @EnableAsync
 public class AsyncConfig {
