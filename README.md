@@ -1,6 +1,6 @@
 # IEJI RPG — Backend
 
-Backend de uma aplicação web para mestrar e jogar RPGs de investigação/terror (estilo *Ordem Paranormal*), com fichas de personagem, casos de investigação, batalhas contra monstros, inventário, chat e presença em tempo real via WebSocket.
+Backend de uma aplicação web para mestrar e jogar RPGs de investigação/terror, com fichas de personagem, casos de investigação, batalhas contra monstros, inventário, chat e presença em tempo real via WebSocket.
 
 ## ✨ Funcionalidades
 
@@ -11,7 +11,7 @@ Backend de uma aplicação web para mestrar e jogar RPGs de investigação/terro
 - **Inventário**: por personagem, com regras de posse (dono ou mestre) delegadas ao serviço de personagens.
 - **Chat em tempo real e presença online** por caso, via STOMP/WebSocket autenticado por JWT.
 - **Cache com Redis** para reduzir carga no banco.
-- **Recuperação de senha** por e-mail (integração com Gmail API).
+- **Notificações por e-mail** (integração com Gmail API): recuperação de senha e aviso automático aos jogadores quando o mestre agenda uma sessão.
 - **Documentação da API** via springdoc-openapi (Swagger UI).
 
 ## 🛠️ Tecnologias
@@ -48,7 +48,7 @@ com.ieji.rpg
     └── port/                # Integração com serviços externos (Cloudinary)
 ```
 
-O projeto usa um padrão de **CRUD genérico**: `AbstractController` e `AbstractService` concentram as operações básicas (`create`, `findAll`, `getById`, `update`, `delete`, `patch`), e cada controller específico sobrescreve o que precisa (regras de autorização, validações extras, endpoints adicionais).
+O projeto usa um padrão de **CRUD genérico**: `AbstractController` e `AbstractService` concentram as operações básicas (`create`, `findAll`, `getById`, `update`, `delete`, `patch`), e cada controller específico sobrescreve o que precisa pelo padrão template method (regras de autorização, validações extras, endpoints adicionais).
 
 ## 🔐 Autenticação e papéis
 
@@ -234,13 +234,3 @@ A autenticação acontece no `CONNECT`, via header `Authorization: Bearer <token
 | `/topic/caso/{casoId}/presenca` | Usuários online no caso |
 
 > ⚠️ O controle de presença é mantido em memória — funciona corretamente apenas com uma única instância da aplicação. Para múltiplas réplicas, seria necessário migrar para um estado compartilhado (ex.: Redis).
-
-## 🧪 Testes
-
-```bash
-./gradlew test
-```
-
-## 📄 Licença
-
-Defina aqui a licença do projeto (ex.: MIT).
